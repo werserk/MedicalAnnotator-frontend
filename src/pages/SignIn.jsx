@@ -1,11 +1,9 @@
 import { Navigate } from "react-router-dom";
-import PropTypes from "prop-types"
-import { connect } from 'react-redux'
-import { login } from "../actions/auth"
 import { useState } from "react";
 
-const SignIn = ({login, isAuthenticated}) => {
+const SignIn = () => {
 
+    const [isAuthenticated, setIsAuthenticated] = useState(false)
     const [formData, setFormData] = useState({
         username: "",
         password: "",
@@ -18,7 +16,7 @@ const SignIn = ({login, isAuthenticated}) => {
     const onSubmit = e => {
         e.preventDefault()
 
-        login(username, password)
+        setIsAuthenticated(true)
     }
 
     return (
@@ -42,13 +40,4 @@ const SignIn = ({login, isAuthenticated}) => {
     )
 }
 
-SignIn.propTypes = {
-    login: PropTypes.func.isRequired,
-    isAuthenticated: PropTypes.bool.isRequired,
-}
-
-const mapStateToProps = state => ({
-    isAuthenticated: state.auth.isAuthenticated,
-})
-
-export default connect(mapStateToProps, {login})(SignIn)
+export default SignIn;
