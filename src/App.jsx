@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SignIn from './pages/SignIn';
 import Dashboard from './pages/Dashboard';
 import FileManager from './elements/FileUpload';
-import { OpenCvProvider } from 'opencv-react';
 import Marker from './components/Marker';
 import PropTypes from "prop-types"
 import { connect } from 'react-redux'
@@ -32,27 +31,20 @@ const App = ({token, refresh, refreshToken}) => {
     checkToken()
   }, [])
 
-  const [cv, setCV] = useState()
-
-  const onLoaded = (cv) => {
-    setCV(cv)
-  }
-
   const authRequestHeader = {
     "Authorization": `Bearer ${token}`
   }
 
   const contextValue = {
-    cv, 
     authRequestHeader, 
   }
 
 
   return (
-    <OpenCvProvider onLoad={onLoaded}>
       <context.Provider value={contextValue}>
       <wc-toast></wc-toast>
       <div className="App">
+        <canvas id="canvas"></canvas>
         <Router>
             <Routes>
               <Route path='*' element={<h1>Not Found</h1>} />
@@ -62,12 +54,12 @@ const App = ({token, refresh, refreshToken}) => {
                   <FileManager/>
                 </Dashboard>
               }/>
+              
               <Route path="/marker/:study/:instance/" element={<Marker/>}/>
             </Routes>
         </Router>
       </div>
       </context.Provider>
-    </OpenCvProvider>
   );
 }
 

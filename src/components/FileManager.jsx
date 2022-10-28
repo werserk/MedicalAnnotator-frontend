@@ -74,7 +74,8 @@ const FileManager = () => {
                         </div>
                     ))}
                 </div>
-                : 
+            : null}
+            {instances.length > 0 ?
                 <div className="file_manager__list">
                     <button onClick={getStudies} className="file_manager__list_button_back">Back to studies</button>
                     {instances.map((instance, i) => (
@@ -83,7 +84,7 @@ const FileManager = () => {
                         </div>
                     ))}
                 </div>
-            }
+            : null}
         </div>
     )
 }
