@@ -44,7 +44,7 @@ const App = ({token, refresh, refreshToken}) => {
       <context.Provider value={contextValue}>
       <wc-toast></wc-toast>
       <div className="App">
-        <canvas id="canvas"></canvas>
+        <canvas id='canvas'></canvas>
         <Router>
             <Routes>
               <Route path='*' element={<h1>Not Found</h1>} />

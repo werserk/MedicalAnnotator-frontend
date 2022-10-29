@@ -90,3 +90,87 @@ export function erode(image, kernel_size, np, cv2) {
     const eroded = cv2.erode(image, kernel)
     return eroded
 }
+
+function get_windowing(data) {
+    var dicom_fields, res;
+  
+    try {
+      dicom_fields = [data[["0028", "1050"]].value, data[["0028", "1051"]].value];
+  
+      res = function () {
+        var _pj_a = [],
+            _pj_b = dicom_fields;
+  
+        for (var _pj_c = 0, _pj_d = _pj_b.length; _pj_c < _pj_d; _pj_c += 1) {
+          var x = _pj_b[_pj_c];
+  
+          _pj_a.push(get_first_of_dicom_field_as_int(x));
+        }
+  
+        return _pj_a;
+      }.call(this);
+    } catch (e) {
+      if (e instanceof KeyError) {
+        console.log("No window center or width");
+        res = [2048, 4096];
+      } else {
+        throw e;
+      }
+    }
+  
+    try {
+      dicom_fields = [data[["0028", "1052"]].value, data[["0028", "1053"]].value];
+      res.extend(function () {
+        var _pj_a = [],
+            _pj_b = dicom_fields;
+  
+        for (var _pj_c = 0, _pj_d = _pj_b.length; _pj_c < _pj_d; _pj_c += 1) {
+          var x = _pj_b[_pj_c];
+  
+          _pj_a.push(get_first_of_dicom_field_as_int(x));
+        }
+  
+        return _pj_a;
+      }.call(this));
+    } catch (e) { 
+      if (e instanceof KeyError) {
+        res.extend([0, 1]);
+      } else {
+        throw e;
+      }
+    }
+  
+    try {
+      res.append(data[["0028", "0004"]].value === "MONOCHROME1");
+    } catch (e) {
+      if (e instanceof KeyError) {
+        res.append(false);
+      } else {
+        throw e;
+      }
+    }
+  
+    return res;
+  }
+
+function dicom2image(image, raw = false, equalize = false) {
+    var image, windowing;
+    windowing = get_windowing(scan);
+    
+    if (!raw) {
+        image = apply_windowing(image, ...windowing);
+    }
+    
+    if (equalize) {
+        image = equalize_hist(image);
+    }
+    
+    if (raw) {
+        return [image, windowing];
+    }
+    
+    return image;
+    }
+
+
+    
