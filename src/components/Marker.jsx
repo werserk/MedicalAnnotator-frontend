@@ -6,7 +6,9 @@ import Slider from "../elements/Slider"
 import { useParams } from "react-router"
 import { useEffect } from "react"
 import dwv from 'dwv'
-import cv from "@techstark/opencv-js"
+import cv from "../libs/openCv"
+import nj from "@d4c/numjs/build/module/numjs.min.js"
+import { apply_windowing } from "../cv/utils/transforms"
 
 function Marker() {
     const {authRequestHeader} = useContext(context)
@@ -47,24 +49,35 @@ function Marker() {
         app.addEventListener('loadend', createMat);   
     }
 
+
     const createMat = () => {
         const image = app.getImage(0)
         const geometry = image.getGeometry()
         const size = geometry.getSize().getValues() // width, height, deep
         const buffer = image.getBuffer()
         const bufferint16 = new Int16Array(buffer)
-        const bufferint160 = bufferint16[0]
-        console.log(bufferint160)
-        const float32 = Math.max(bufferint16)
-        const mat = new cv.matFromArray(size[1], size[0], cv.CV_16SC4, bufferint160)
+        float32 = nj.array(float32)
+        float32 = apply_windowing(float32, 40, 400, 0, 1, false, nj)
+        const mat = new cv.matFromArray(size[1], size[0], cv.CV_32F, float32.tolist())
+        console.log(mat)
         cv.imshow("canvas", mat)
         removeUnnecessaryLayers("layerGroup0")
-        const uint8Buffer = new Uint8Array(buffer)
     }
 
-    // const normalize = (buf16, bufmin, bufmax) => {
-    //     const del = bufmax - bufmin
-    // }
+    const arrayMinMax = (arr) =>
+        arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
+            Number.POSITIVE_INFINITY,
+            Number.NEGATIVE_INFINITY,
+    ]);
+
+    const normalize = (buf, [bufmin, bufmax]) => {
+        const delta = bufmax - bufmin
+        const new_array = new Float32Array(buf)
+        for (var i=0;i < buf.length; i++) {
+            new_array[i] = (new_array[i] - bufmin) / delta
+        }
+        return new_array
+    }
 
     const createImageData = (uint8Buffer, size) => {
         console.log(size)
@@ -139,11 +152,11 @@ function Marker() {
         <div className="marker">
             <canvas id="canvas"></canvas>
             <img id="image" alt="" />
-            <p>first</p>
+            {/* <p>first</p>
             <Slider max={2048} value={value_1} changeValue={changeValue1}/>
             <p>second</p>
             <Slider max={4096} value={value_2} changeValue={changeValue2}/>
-            <hr />
+            <hr /> */}
             <div className="" id="layerGroup0"></div>
         </div>
     )

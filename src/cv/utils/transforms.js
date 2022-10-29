@@ -1,14 +1,11 @@
-export function apply_windowing(img, window_center, window_width, intercept, slope, inverted=false, np) {
+export function apply_windowing(img, window_center, window_width, intercept=0, slope=1, inverted=false, np) { // вместо nor,ilize
     let img = (img * slope + intercept)  // for translation adjustments given in the dicom file.
     let img_min = window_center - window_width // 2  # minimum HU level
     let img_max = window_center + window_width // 2  # maximum HU level
     img[img < img_min] = img_min  // set img_min for all HU levels less than minimum HU level
     img[img > img_max] = img_max  // set img_max for all HU levels higher than maximum HU level
-    if (inverted) {
-        img = -img
-        img_min = Math.min(...img)
-        img_max = Math.max(...img)
-    }
+    img_min = img.min()
+    img_max = img.max()
     img = (img - img_min) / (img_max - img_min) * 255.0
     img = np.array(img, dtype=np.uint8)
     return img
@@ -173,4 +170,3 @@ function dicom2image(image, raw = false, equalize = false) {
     }
 
 
-    

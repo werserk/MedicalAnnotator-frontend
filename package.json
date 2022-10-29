@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@d4c/numjs": "^0.17.34",
     "@techstark/opencv-js": "^4.6.0-release.1",
     "axios": "^1.1.3",
     "dwv": "^0.30.8",
     "jszip": "^3.10.1",
-    "numjs": "^0.16.1",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -23,6 +23,7 @@
     "redux": "^4.2.0",
     "redux-devtools-extension": "^2.13.9",
     "redux-thunk": "^2.4.1",
+    "typedarray-pool": "^1.2.0",
     "wc-toast": "^1.2.8"
   },
   "devDependencies": {
