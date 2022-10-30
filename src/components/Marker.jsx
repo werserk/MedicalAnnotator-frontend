@@ -137,8 +137,13 @@ function Marker() {
         let float32Normalized = apply_windowing(new Float32Array(buffer), wc, ww)
         let mat = new cv.matFromArray(size[1], size[0], cv.CV_32F, float32Normalized.tolist())
         setCVMat(mat)
-        
     }
+
+    useEffect(() => {
+        if (currentImage) {
+            changeWindowing(wc, ww)
+        }
+    }, [ww, wc])
 
     return ( // возвращает наполение старницы
         <div className="marker">
@@ -148,9 +153,9 @@ function Marker() {
                 <Viewport mat={CVMat} setMousePosition={setMousePosition}/>
             </ReactCursorPosition>
             <p>Window Center</p>
-            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={wc} onChange={(value) => changeWindowing(value, ww)}/>
+            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={wc} onChange={(value) => setWC(value)}/>
             <p>Window Width</p>
-            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={ww} onChange={(value) => changeWindowing(wc, value)}/>
+            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={ww} onChange={(value) => setWW(value)}/>
             <hr />
         </div>
     )
