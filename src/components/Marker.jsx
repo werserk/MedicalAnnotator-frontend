@@ -148,9 +148,9 @@ function Marker() {
                 <Viewport mat={CVMat} setMousePosition={setMousePosition}/>
             </ReactCursorPosition>
             <p>Window Center</p>
-            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={wc} onChange={(value) => changeWindowing(value, ww)}/>
+            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" min={1} max={2048} value={wc} onChange={(value) => changeWindowing(value, ww)}/>
             <p>Window Width</p>
-            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={ww} onChange={(value) => changeWindowing(wc, value)}/>
+            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" min={1} max={4096} value={ww} onChange={(value) => changeWindowing(wc, value)}/>
             <hr />
         </div>
     )
