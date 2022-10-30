@@ -1,36 +1,20 @@
-import nj from "@d4c/numjs"
+import nj from "@d4c/numjs/build/module/numjs.min.js"
 
-export function apply_windowing(img, window_center, window_width) {
-  let img = nj.array(img, dtype=nj.float32)
+export function apply_windowing(image, window_center, window_width) {
+  let img = nj.array(image, "float32")
 
   const img_min = window_center - window_width / 2  // minimum HU level
   let criterion = (x) => x < img_min
-  img = apply_criterion(img, img, criterion, img_min)  // set img_min for all HU levels less than minimum HU level
+  let change = (x) => img_min
+  img = apply_criterion(img, img, criterion, change)  // set img_min for all HU levels less than minimum HU level
 
   const img_max = window_center + window_width / 2  // minimum HU level
-  let criterion2 = (x) => x > img_max
-  img = apply_criterion(img, img, criterion2, img_max)  // set img_min for all HU levels less than minimum HU level
+  criterion = (x) => x > img_max
+  change = (x) => img_max
+  img = apply_criterion(img, img, criterion, change)  // set img_min for all HU levels less than minimum HU level
 
-  img = normalize(img, img.min(), img.max())
-  img = nj.array(img, dtype=nj.uint8)
+  img = normalize(img)
   return img
-}
-
-export function normalize (array, min, max) {
-  const delta = max - min
-  let new_array = array.copy()
-  for (var i=0;i < array.length; i++) {
-      new_array[i] = (array[i] - min) / delta
-  return new_array
-}
-
-
-export function apply_criterion(array, criterion_array, criterion, value) {
-  for (let i = 1; i < array.lenght; i++) {
-    if (criterion(criterion_array[i])) {
-      array[i] = value
-  }
-  return array
 }
 
 export const arrayMinMax = (arr) =>
@@ -39,13 +23,22 @@ export const arrayMinMax = (arr) =>
             Number.NEGATIVE_INFINITY,
 ]);
 
-export function normalize(buf, [bufmin, bufmax]) {
-    const delta = bufmax - bufmin
-    const new_array = new Float32Array(buf)
-    for (var i=0;i < buf.length; i++) {
-        new_array[i] = (new_array[i] - bufmin) / delta
+
+export function apply_criterion(array, criterion_array, criterion, change) {
+  let new_array = array.tolist()
+  for (let i=0; i < new_array.length; i++) {
+    if (criterion(criterion_array.get(i))) {
+      new_array[i] = change(array.get(i))
     }
-    return new_array
+  }
+  return nj.array(new_array, "float32")
+}
+
+export function normalize(array) {
+  const min = array.min()
+  const max = array.max()
+  let new_array = nj.divide(nj.add(array, -min), max - min)
+  return new_array
 }
 
 export function denoise(image, power=13, temp_window_size=7, search_window_size=21, cv2) {
@@ -69,7 +62,7 @@ export function remove_small_dots(image, cv2, np) {
     let binary_map = image.copy()
     binary_map = 255 - binary_map  // invert
     let [nlabels, labels, stats] = cv2.connectedComponentsWithStats(binary_map, None, None, None, 8, cv2.CV_32S)
-    let areas = stats[stats.slice([1, null], [cv2.CC_STAT_AREA])] // обрати внимание, возможно неправильно
+    let areas = stats[stats.slice([1, null], [cv2.CC_STAT_AREA])]
     // let areas = stats[stats[1:, cv2.CC_STAT_AREA]]
     let result = np.zeros(labels.shape, np.uint8)
     for (let i = 0; i < nlabels.length - 1; i++) {
@@ -88,7 +81,7 @@ export function erode(image, kernel_size, np, cv2) {
     return eroded
 }
 
-function get_windowing(data) { // скорее всего надо переписать, функция просто сгенерена переводчиком
+function get_windowing(data) {
     var dicom_fields, res;
   
     try {
@@ -150,7 +143,7 @@ function get_windowing(data) { // скорее всего надо перепи�
     return res;
   }
 
-function dicom2image(image, raw = false, equalize = false) { // тут все по идее правильно, но тоже надо потестить
+function dicom2image(image, raw = false, equalize = false) {
     var image, windowing;
     windowing = get_windowing(scan);
     
@@ -168,3 +161,5 @@ function dicom2image(image, raw = false, equalize = false) { // тут все п
     
     return image;
     }
+
+

@@ -7,14 +7,15 @@ import { useEffect } from "react"
 import dwv from 'dwv'
 import cv from '@techstark/opencv-js'
 import nj from "@d4c/numjs/build/module/numjs.min.js"
-import { normalize, arrayMinMax } from '../cv/utils/transforms'
+import { normalize, arrayMinMax, apply_windowing } from '../cv/utils/transforms'
 import ReactCursorPosition from 'react-cursor-position';
 import Viewport from "../elements/Viewport"
 
 function Marker() {
     const {authRequestHeader} = useContext(context)
-    const [value_1, changeValue1] = useState(1024)
-    const [value_2, changeValue2] = useState(1024) // значение слайдера
+    const [wc, changeWC] = useState(1000)
+    const [ww, changeWW] = useState(1000) // значение слайдера
+    const [tags, setTags] = useState(0)
     const [mousePosition, setMousePosition] = useState({}) // x, y курсора
     const {study, instance} = useParams()
     const [CVMat, setCVMat] = useState()
@@ -57,7 +58,6 @@ function Marker() {
                 }
             }, 100)
 
-            removeUnnecessaryLayers("layerGroup0")
         });
     }
 
@@ -66,8 +66,8 @@ function Marker() {
         const geometry = image.getGeometry()
         const size = geometry.getSize().getValues() // width, height, deep
         const buffer = image.getBuffer() 
-        let float32Normalized = normalize(buffer, arrayMinMax(buffer))
-        let mat = new cv.matFromArray(size[1], size[0], cv.CV_32F, float32Normalized)
+        let float32Normalized = apply_windowing(new Float32Array(buffer), wc, ww)
+        let mat = new cv.matFromArray(size[1], size[0], cv.CV_32F, float32Normalized.tolist())
         setCVMat(mat)
     }
 
@@ -110,24 +110,20 @@ function Marker() {
         console.log("slope", slope)
         console.log("photometricInterpretation", photometricInterpretation)
         console.log("pixelSpacing", pixelSpacing)
-
+        
+        changeWC(windowCenter)
+        changeWW(windowWidth)
+        setTags({windowCenter, windowWidth, rescaleIntercept, slope, photometricInterpretation, pixelSpacing})
         return windowCenter, windowWidth, rescaleIntercept, slope, photometricInterpretation, pixelSpacing
-    }
-
-    const removeUnnecessaryLayers = (containerId) => {
-        const container =  document.getElementById(containerId)
-        if (container.childNodes.length > 0) {
-            const mainLayer = container.firstChild
-            container.innerHTML = ""
-            container.appendChild(mainLayer)
-        }
     }
 
     useEffect(() => { // выполняется при каждом обновлении один раз
         const url = BASE_URL + `api/instance/${study}/${instance}/`
         getInstance(url)
-        // parseInstance(url)
-    }, [])
+        if (tags === 0){
+            parseInstance(url)
+        }
+    }, [wc, ww])
 
     const initTool = () => {
         // инициализируем экземпляр класса, производим какие-либо операции
@@ -140,13 +136,11 @@ function Marker() {
             <ReactCursorPosition className="viewport" style={{width: "fit-content", margin: "0 auto"}}>
                 <Viewport mat={CVMat} setMousePosition={setMousePosition}/>
             </ReactCursorPosition>
-            <p>first</p>
-            <Slider max={2048} value={value_1} changeValue={changeValue1}/>
-            <p>second</p>
-            <Slider max={4096} value={value_2} changeValue={changeValue2}/>
+            <p>Window Center</p>
+            <Slider max={2048} value={wc} changeValue={changeWC}/>
+            <p>Window Width</p>
+            <Slider max={4096} value={ww} changeValue={changeWW}/>
             <hr />
-            <h3>То что отобразила библиотека</h3>
-            <div className="" id="layerGroup0"></div>
         </div>
     )
 }

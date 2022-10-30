@@ -1,7 +1,7 @@
 import Slider from "../elements/Slider"
 import { apply_windowing } from "../utils/transforms"
 import cv from "@techstark/opencv-js"
-import nj from "@d4c/numjs"
+import nj from "@d4c/numjs/build/module/numjs.min.js"
 
 class SegmentationWindow {
     constructor (survey, tags) {
