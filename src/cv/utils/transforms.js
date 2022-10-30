@@ -1,14 +1,36 @@
-export function apply_windowing(img, window_center, window_width, intercept=0, slope=1, inverted=false, np) { // вместо nor,ilize
-    let img = (img * slope + intercept)  // for translation adjustments given in the dicom file.
-    let img_min = window_center - window_width // 2  # minimum HU level
-    let img_max = window_center + window_width // 2  # maximum HU level
-    img[img < img_min] = img_min  // set img_min for all HU levels less than minimum HU level
-    img[img > img_max] = img_max  // set img_max for all HU levels higher than maximum HU level
-    img_min = img.min()
-    img_max = img.max()
-    img = (img - img_min) / (img_max - img_min) * 255.0
-    img = np.array(img, dtype=np.uint8)
-    return img
+import nj from "@d4c/numjs"
+
+export function apply_windowing(img, window_center, window_width) {
+  let img = nj.array(img, dtype=nj.float32)
+
+  const img_min = window_center - window_width / 2  // minimum HU level
+  let criterion = (x) => x < img_min
+  img = apply_criterion(img, img, criterion, img_min)  // set img_min for all HU levels less than minimum HU level
+
+  const img_max = window_center + window_width / 2  // minimum HU level
+  let criterion2 = (x) => x > img_max
+  img = apply_criterion(img, img, criterion2, img_max)  // set img_min for all HU levels less than minimum HU level
+
+  img = normalize(img, img.min(), img.max())
+  img = nj.array(img, dtype=nj.uint8)
+  return img
+}
+
+export function normalize (array, min, max) {
+  const delta = max - min
+  let new_array = array.copy()
+  for (var i=0;i < array.length; i++) {
+      new_array[i] = (array[i] - min) / delta
+  return new_array
+}
+
+
+export function apply_criterion(array, criterion_array, criterion, value) {
+  for (let i = 1; i < array.lenght; i++) {
+    if (criterion(criterion_array[i])) {
+      array[i] = value
+  }
+  return array
 }
 
 export function denoise(image, power=13, temp_window_size=7, search_window_size=21, cv2) {
@@ -26,43 +48,6 @@ export function transform_to_contours (image, cv2, np) {
     const mask = np.zeros(image.shape, np.uint8)
     cv2.drawContours(mask, contours, -1, (255, 255, 255), -1)
     return image
-}
-
-const criterion = (x, value) => {
-    return x === value
-}
-
-export function apply_boolean_mask(array, array_criterion, value, inc) {
-    array.copy()
-    if (array.shape != array_criterion.shape) {
-        print("Размеры не совпадают")
-        return
-    }
-
-    for (let i = 1; i < array.lenght; i++) {
-
-    }
-    if (array.shape.lenght === 2) {
-        for (let i = 1; i < array.lenght; i++) {
-            for (let j = 1; j < array[i].lenght; j++) {
-                if (criterion(array_criterion[i][j], inc)) {
-                    array[i][j] = value
-                }
-            }
-        }
-    }
-    else if (array.shape.lenght === 3) {
-        for (let i = 1; i < array.lenght; i++) {
-            for (let k = 1; k < array[i].lenght; k++) {
-                for (let k = 1; k < array[i].lenght; k++) {
-                    if (criterion(array_criterion[i][j][k], inc)) {
-                        array[i][j][k] = value
-                    }
-                }
-            }
-        }
-    }
-    return array
 }
 
 export function remove_small_dots(image, cv2, np) {

@@ -6,13 +6,14 @@ import Slider from "../elements/Slider"
 import { useParams } from "react-router"
 import { useEffect } from "react"
 import dwv from 'dwv'
-import cv from "../libs/openCv"
-import nj from "@d4c/numjs/build/module/numjs.min.js"
+
+import cv from "@techstark/opencv-js"
+
 import { apply_windowing } from "../cv/utils/transforms"
+import { parseTags } from "../cv/utils/dicomProcessing"
 
 function Marker() {
     const {authRequestHeader} = useContext(context)
-
     const [value_1, changeValue1] = useState(1024)
     const [value_2, changeValue2] = useState(1024)
     const {study, instance} = useParams()
@@ -49,50 +50,20 @@ function Marker() {
         app.addEventListener('loadend', createMat);   
     }
 
-
     const createMat = () => {
         const image = app.getImage(0)
         const geometry = image.getGeometry()
         const size = geometry.getSize().getValues() // width, height, deep
         const buffer = image.getBuffer()
-        const bufferint16 = new Int16Array(buffer)
-        float32 = nj.array(float32)
-        float32 = apply_windowing(float32, 40, 400, 0, 1, false, nj)
-        const mat = new cv.matFromArray(size[1], size[0], cv.CV_32F, float32.tolist())
-        console.log(mat)
+        let Int16Survey = new Int16Array(buffer)
+        console.log(Int16Survey)
+        let Uint8Image = apply_windowing(survey_int16, 40, 400)
+        console.log(Uint8Image)
+        let mat = new cv.matFromArray(size[1], size[0], cv.CV_8U, Uint8Image)
         cv.imshow("canvas", mat)
-        removeUnnecessaryLayers("layerGroup0")
+        removeUnnecessaryLayers("layerGroup0") // ???
     }
-
-    const arrayMinMax = (arr) =>
-        arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
-            Number.POSITIVE_INFINITY,
-            Number.NEGATIVE_INFINITY,
-    ]);
-
-    const normalize = (buf, [bufmin, bufmax]) => {
-        const delta = bufmax - bufmin
-        const new_array = new Float32Array(buf)
-        for (var i=0;i < buf.length; i++) {
-            new_array[i] = (new_array[i] - bufmin) / delta
-        }
-        return new_array
-    }
-
-    const createImageData = (uint8Buffer, size) => {
-        console.log(size)
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        var imgData = ctx.createImageData(size[0], size[1])
-        for (var i=0;i < uint8Buffer.length; i+=4) {
-            imgData.data[i]   = uint8Buffer[i];   //red
-            imgData.data[i+2] = uint8Buffer[i+2]; //blue
-            imgData.data[i+1] = uint8Buffer[i+1]; //green
-            imgData.data[i+3] = uint8Buffer[i+3]; //alpha
-        }
-        ctx.putImageData(imgData,0,0,0,0, size[0], size[0]);
-    }
-
+ 
     const parseInstance = (url) => {
         var request = new XMLHttpRequest();
         request.open('GET', url);
@@ -104,34 +75,6 @@ function Marker() {
             parseTags(rawTags)
         };
         request.send();
-    }
-
-    const parseTags = (rawTags) => {
-        if ("x00281050" in rawTags) {
-            var windowCenter = parseInt(rawTags.x00281050.value[0], 10)
-        }
-        if ("x00281051" in rawTags) {
-            var windowWidth = parseInt(rawTags.x00281051.value[0], 10)
-        }
-        if ("x00281052" in rawTags) {
-            var rescaleIntercept = parseInt(rawTags.x00281052.value[0], 10)
-        }
-        if ("x00281053" in rawTags) {
-            var slope = parseInt(rawTags.x00281053.value[0], 10)
-        }
-        if ("x00280004" in rawTags) {
-            var photometricInterpretation = parseInt(rawTags.x00280004.value[0], 10)
-        }
-        if ("x00280030" in rawTags) {
-            var pixelSpacing = parseInt(rawTags.x00280030.value[0], 10)
-        }
-
-        console.log("windowCenter", windowCenter)
-        console.log("windowWidth", windowWidth)
-        console.log("rescaleIntercept", rescaleIntercept)
-        console.log("slope", slope)
-        console.log("photometricInterpretation", photometricInterpretation)
-        console.log("pixelSpacing", pixelSpacing)
     }
 
     const removeUnnecessaryLayers = (containerId) => {
@@ -152,11 +95,11 @@ function Marker() {
         <div className="marker">
             <canvas id="canvas"></canvas>
             <img id="image" alt="" />
-            {/* <p>first</p>
+            <p>first</p>
             <Slider max={2048} value={value_1} changeValue={changeValue1}/>
             <p>second</p>
             <Slider max={4096} value={value_2} changeValue={changeValue2}/>
-            <hr /> */}
+            <hr />
             <div className="" id="layerGroup0"></div>
         </div>
     )
