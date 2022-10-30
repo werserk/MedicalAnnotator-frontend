@@ -22,6 +22,8 @@ const App = ({token, refresh, refreshToken}) => {
           console.log(e)
           window.location = "/"
       }
+    } else if (window.location.pathname !== "/") {
+      window.location = "/"
     }
   }
 

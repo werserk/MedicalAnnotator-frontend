@@ -33,6 +33,21 @@ export function apply_criterion(array, criterion_array, criterion, value) {
   return array
 }
 
+export const arrayMinMax = (arr) =>
+        arr.reduce(([min, max], val) => [Math.min(min, val), Math.max(max, val)], [
+            Number.POSITIVE_INFINITY,
+            Number.NEGATIVE_INFINITY,
+]);
+
+export function normalize(buf, [bufmin, bufmax]) {
+    const delta = bufmax - bufmin
+    const new_array = new Float32Array(buf)
+    for (var i=0;i < buf.length; i++) {
+        new_array[i] = (new_array[i] - bufmin) / delta
+    }
+    return new_array
+}
+
 export function denoise(image, power=13, temp_window_size=7, search_window_size=21, cv2) {
     const denoised = cv2.fastNlMeansDenoising(image, None, power, temp_window_size, search_window_size)
     return denoised
@@ -54,7 +69,7 @@ export function remove_small_dots(image, cv2, np) {
     let binary_map = image.copy()
     binary_map = 255 - binary_map  // invert
     let [nlabels, labels, stats] = cv2.connectedComponentsWithStats(binary_map, None, None, None, 8, cv2.CV_32S)
-    let areas = stats[stats.slice([1, null], [cv2.CC_STAT_AREA])]
+    let areas = stats[stats.slice([1, null], [cv2.CC_STAT_AREA])] // обрати внимание, возможно неправильно
     // let areas = stats[stats[1:, cv2.CC_STAT_AREA]]
     let result = np.zeros(labels.shape, np.uint8)
     for (let i = 0; i < nlabels.length - 1; i++) {
@@ -73,7 +88,7 @@ export function erode(image, kernel_size, np, cv2) {
     return eroded
 }
 
-function get_windowing(data) {
+function get_windowing(data) { // скорее всего надо переписать, функция просто сгенерена переводчиком
     var dicom_fields, res;
   
     try {
@@ -135,7 +150,7 @@ function get_windowing(data) {
     return res;
   }
 
-function dicom2image(image, raw = false, equalize = false) {
+function dicom2image(image, raw = false, equalize = false) { // тут все по идее правильно, но тоже надо потестить
     var image, windowing;
     windowing = get_windowing(scan);
     
@@ -153,5 +168,3 @@ function dicom2image(image, raw = false, equalize = false) {
     
     return image;
     }
-
-
