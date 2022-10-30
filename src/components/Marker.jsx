@@ -9,16 +9,19 @@ import cv from '@techstark/opencv-js'
 import nj from "@d4c/numjs/build/module/numjs.min.js"
 import { normalize, arrayMinMax, apply_windowing } from '../cv/utils/transforms'
 import ReactCursorPosition from 'react-cursor-position';
+import ReactSlider from 'react-slider'
 import Viewport from "../elements/Viewport"
+import "./Marker.css"
 
 function Marker() {
     const {authRequestHeader} = useContext(context)
-    const [wc, changeWC] = useState(1000)
-    const [ww, changeWW] = useState(1000) // значение слайдера
+    const [wc, setWC] = useState(1000)
+    const [ww, setWW] = useState(1000) // значение слайдера
     const [tags, setTags] = useState(0)
     const [mousePosition, setMousePosition] = useState({}) // x, y курсора
     const {study, instance} = useParams()
     const [CVMat, setCVMat] = useState()
+    const [currentImage, setCurrentImage] = useState(0)
     var dicomParser = new dwv.dicom.DicomParser()
 
 
@@ -36,14 +39,7 @@ function Marker() {
 
     const app = new dwv.App(); // настраиваем вьюпорт
     app.init({
-        dataViewConfigs: {'*': [{divId: 'layerGroup0'}]},
-        tools: {
-            WindowLevel: {}, // добавляем доступные из коробки инструменты
-    },
-    });
-
-    app.addEventListener('load', function () { // назначаем инструменты
-        app.setTool('WindowLevel');
+        dataViewConfigs: {'*': []}
     });
 
     
@@ -63,6 +59,7 @@ function Marker() {
 
     const createMat = () => {
         const image = app.getImage(0)
+        setCurrentImage(image)
         const geometry = image.getGeometry()
         const size = geometry.getSize().getValues() // width, height, deep
         const buffer = image.getBuffer() 
@@ -111,15 +108,17 @@ function Marker() {
         console.log("photometricInterpretation", photometricInterpretation)
         console.log("pixelSpacing", pixelSpacing)
         
-        changeWC(windowCenter)
-        changeWW(windowWidth)
+        setWC(windowCenter)
+        setWW(windowWidth)
         setTags({windowCenter, windowWidth, rescaleIntercept, slope, photometricInterpretation, pixelSpacing})
         return windowCenter, windowWidth, rescaleIntercept, slope, photometricInterpretation, pixelSpacing
     }
 
     useEffect(() => { // выполняется при каждом обновлении один раз
         const url = BASE_URL + `api/instance/${study}/${instance}/`
-        getInstance(url)
+        if (currentImage === 0) {
+            getInstance(url)
+        }
         if (tags === 0){
             parseInstance(url)
         }
@@ -127,6 +126,18 @@ function Marker() {
 
     const initTool = () => {
         // инициализируем экземпляр класса, производим какие-либо операции
+    }
+
+    const changeWindowing = (wc, ww) => {
+        setWC(wc)
+        setWW(ww)
+        const geometry = currentImage.getGeometry()
+        const size = geometry.getSize().getValues() // width, height, deep
+        const buffer = currentImage.getBuffer() 
+        let float32Normalized = apply_windowing(new Float32Array(buffer), wc, ww)
+        let mat = new cv.matFromArray(size[1], size[0], cv.CV_32F, float32Normalized.tolist())
+        setCVMat(mat)
+        
     }
 
     return ( // возвращает наполение старницы
@@ -137,9 +148,9 @@ function Marker() {
                 <Viewport mat={CVMat} setMousePosition={setMousePosition}/>
             </ReactCursorPosition>
             <p>Window Center</p>
-            <Slider max={2048} value={wc} changeValue={changeWC}/>
+            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={wc} onChange={(value) => changeWindowing(value, ww)}/>
             <p>Window Width</p>
-            <Slider max={4096} value={ww} changeValue={changeWW}/>
+            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={ww} onChange={(value) => changeWindowing(wc, value)}/>
             <hr />
         </div>
     )

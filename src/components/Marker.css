@@ -40,6 +40,3 @@
     /* color of the track before the thumb */
     background: var(--main-color);
 }
-
-<ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={value_1} onChange={(value) => changeValue1(value)}/>
-            <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={value_2} onChange={(value) => changeValue2(value)}/>
