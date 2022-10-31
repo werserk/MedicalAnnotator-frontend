@@ -54,16 +54,16 @@ const Base = () => {
         cv.imshow("canvas", mat)
     }
 
-    app.loadURLs([url], {"requestHeaders": [requestHeaders]})
-    app.addEventListener('loadend', () => {
-        const CV_NJLoadingHandle = setInterval(() => {
-            if (cv && nj) {
-                clearInterval(CV_NJLoadingHandle)
-                createMat(mat)
-            }
-        }, 500)
+    // app.loadURLs([url], {"requestHeaders": [requestHeaders]})
+    // app.addEventListener('loadend', () => {
+    //     const CV_NJLoadingHandle = setInterval(() => {
+    //         if (cv && nj) {
+    //             clearInterval(CV_NJLoadingHandle)
+    //             createMat(mat)
+    //         }
+    //     }, 500)
 
-    });
+    // });
 
     return (
         <>

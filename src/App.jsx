@@ -4,12 +4,12 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SignIn from './pages/SignIn';
 import Dashboard from './pages/Dashboard';
 import FileManager from './elements/FileUpload';
-import Base from './components/Base';
 import PropTypes from "prop-types"
 import { connect } from 'react-redux'
 import { refreshToken } from './actions/auth';
 import context from './context';
 import { useEffect } from 'react';
+import AnnotatorWindow from './components/AnnotatorWindow';
 
 
 const App = ({token, refresh, refreshToken}) => {
@@ -56,7 +56,9 @@ const App = ({token, refresh, refreshToken}) => {
                   <FileManager/>
                 </Dashboard>
               }/>
-              <Route path="/marker/:study/:instance/" element={<Base/>}/>
+              {token !== null && token !== undefined ? 
+                  <Route path="/marker/:study/:instance/" element={<AnnotatorWindow authToken={authRequestHeader}/>}/>
+               : null}
             </Routes>
         </Router>
       </div>
