@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SignIn from './pages/SignIn';
 import Dashboard from './pages/Dashboard';
 import FileManager from './elements/FileUpload';
-import Marker from './components/Marker';
+import Base from './components/Base';
 import PropTypes from "prop-types"
 import { connect } from 'react-redux'
 import { refreshToken } from './actions/auth';
@@ -56,7 +56,7 @@ const App = ({token, refresh, refreshToken}) => {
                   <FileManager/>
                 </Dashboard>
               }/>
-              <Route path="/marker/:study/:instance/" element={<Marker/>}/>
+              <Route path="/marker/:study/:instance/" element={<Base/>}/>
             </Routes>
         </Router>
       </div>

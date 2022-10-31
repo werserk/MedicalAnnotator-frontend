@@ -1,14 +1,13 @@
-import { useContext, useState } from "react"
+import { useContext, useState, useMemo, useEffect } from "react"
 import { BASE_URL } from "../constans"
 import context from "../context"
 import Slider from "../elements/Slider"
 import { useParams } from "react-router"
-import { useEffect } from "react"
 import dwv from 'dwv'
-import cv, { CV_32F } from '@techstark/opencv-js'
+import cv from "@techstark/opencv-js"
 import nj from "@d4c/numjs/build/module/numjs.min.js"
 import { normalize, arrayMinMax, apply_windowing } from '../cv/utils/transforms'
-import ReactCursorPosition from 'react-cursor-position';
+import ReactCursorPosition, { INTERACTIONS } from 'react-cursor-position';
 import ReactSlider from 'react-slider'
 import Viewport from "../elements/Viewport"
 import "./Marker.css"
@@ -19,10 +18,11 @@ function Marker() {
     const [ww, setWW] = useState(1000) // значение слайдера
     const [brush_size, setBrushSize] = useState(5)
     const [tags, setTags] = useState(0)
-    const [mousePosition, setMousePosition] = useState({}) // x, y курсора
+    // const [mousePosition, setMousePosition] = useState({}) // x, y курсора
     const {study, instance} = useParams()
     const [CVMat, setCVMat] = useState()
     const [currentImage, setCurrentImage] = useState(0)
+    const [isActive, setIsActive] = useState(false)
     var dicomParser = new dwv.dicom.DicomParser()
 
     let isBrush = true
@@ -51,13 +51,12 @@ function Marker() {
     const getInstance = (url) => { // получаем DICOM с сервера
         app.loadURLs([url], {"requestHeaders": [requestHeaders]})
         app.addEventListener('loadend', () => {
-            console.log(app)
             const CV_NJLoadingHandle = setInterval(() => {
                 if (cv && nj) {
                     clearInterval(CV_NJLoadingHandle)
                     createMat()
                 }
-            }, 100)
+            }, 500)
 
         });
     }
@@ -70,7 +69,8 @@ function Marker() {
         const buffer = image.getBuffer() 
         let float32Normalized = apply_windowing(new Float32Array(buffer), wc, ww)
         let mat = new cv.matFromArray(size[1], size[0], cv.CV_32FC1, float32Normalized.tolist())
-        setCVMat(mat)
+        // cv.imshow("canvas", mat)
+        // setCVMat(mat)
     }
 
     const parseInstance = (url) => { // парсит DICOM тэги
@@ -113,43 +113,64 @@ function Marker() {
         // инициализируем экземпляр класса, производим какие-либо операции
     }
 
-    const updateImage = () => {
-        const geometry = currentImage.getGeometry()
-        const size = geometry.getSize().getValues() // width, height, deep
-        const buffer = currentImage.getBuffer() 
-        let float32Normalized = apply_windowing(new Float32Array(buffer), wc, ww)
-        let mat = new cv.matFromArray(size[1], size[0], cv.CV_32FC1, float32Normalized.tolist())
-        cv.cvtColor(mat, mat, cv.COLOR_GRAY2BGRA)
-        const center = new cv.Point(mousePosition.x, mousePosition.y)
-        console.log('center', center)
-        console.log('mouse_pos', mousePosition)
-        // cv.circle(mat, center, brush_size, 1, 2)
-        // cv.circle(mat, center, brush_size, (0, 0, 0, 0), -1)
-        // cv.line(mat, center, new cv.Point(mousePosition.x + 10, mousePosition.y + 10))
-        // console.log('size', mat.size)
-        setCVMat(mat)
+    function updateImage(mousePosition) {
+        if (currentImage) {
+            const geometry = currentImage.getGeometry()
+            const size = geometry.getSize().getValues() // width, height, deep
+            const buffer = currentImage.getBuffer() 
+            let float32Normalized = apply_windowing(new Float32Array(buffer), wc, ww)
+            let mat = new cv.matFromArray(size[1], size[0], cv.CV_32FC1, float32Normalized.tolist())
+            cv.cvtColor(mat, mat, cv.COLOR_GRAY2BGRA)
+            const center = {x: mousePosition.x, y: mousePosition.y}
+            // cv.circle(mat, center, brush_size, 1, 2)
+            const radius = 100
+            const color = [0, 0, 255, 0]
+            const thickness = 15
+            cv.circle(mat, center, radius, color, thickness)
+            cv.imshow("canvas", mat)
+            // cv.line(mat, center, new cv.Point(mousePosition.x + 10, mousePosition.y + 10))
+            // console.log('size', mat.size)
+            // setCVMat(mat)
+        }
+        
     }
 
-    useEffect(() => {
-        if (currentImage) {
-            updateImage()
-        }
-    }, [ww, wc, mousePosition])
+    // useEffect(() => {
+    //     if (currentImage) {
+    //         updateImage()
+    //     }
+    // }, [ww, wc, mousePosition, isActive])
+
+    window.addEventListener("load", () => {
+        const canvas = document.getElementById("canvas")
+        const mouseMove = canvas.addEventListener('mousemove', (e) => {
+            const {
+            clientX,
+            clientY
+            } = e
+            console.log(clientX - e.currentTarget.offsetLeft, clientY - e.currentTarget.offsetTop)
+            updateImage({x: clientX, y: clientY})
+        })
+        canvas.addEventListener("mouseleave", removeEventListener(mouseMove))
+    })
 
     return ( // возвращает наполение старницы
         <div className="marker">
             <button onClick={initTool}>Инструмент</button> {/* так добавляется инструмент, функция initTool - calback, который выполняется при нажатии */}
             <h3>То что отобразили мы</h3>
-            <ReactCursorPosition className="viewport" style={{width: "fit-content", margin: "0 auto"}}>
-                <Viewport mat={CVMat} setMousePosition={setMousePosition}/>
+            <ReactCursorPosition activationInteractionMouse={INTERACTIONS.CLICK} className="viewport" style={{width: "fit-content", margin: "0 auto"}}>
+                <Viewport setIsActive={setIsActive} mat={CVMat}/>
             </ReactCursorPosition>
-            <p>Window Center</p>
+            <br />
             <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={wc} onChange={(value) => setWC(value)}/>
-            <p>Window Width</p>
+            <br />
+            <br />
             <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={2048} value={ww} onChange={(value) => setWW(value)}/>
-            <hr />
+            <br />
+            <br />
             <ReactSlider className="customSlider" thumbClassName="customSlider-thumb" trackClassName="customSlider-track" max={20} value={brush_size} onChange={(value) => setBrushSize(value)}/>
-            <hr />
+            <br />
+            <br />
         </div>
     )
 }

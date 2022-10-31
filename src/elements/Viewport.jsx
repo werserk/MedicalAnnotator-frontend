@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import cv from '@techstark/opencv-js'
+import '../cv/base'
 
 const Viewport = (props) => {
     // {
@@ -19,16 +20,23 @@ const Viewport = (props) => {
     //     }
     // }
 
-    const displayMat = (mat) => {
+    function displayMat(mat) {
         if (mat) {
             cv.imshow("canvas", mat)
         }
     }
 
-    useEffect(() => {
-        displayMat(props.mat)
-        props.setMousePosition(props.position)
-    }, [props.mat, props.position])
+    // useEffect(() => {
+    //     displayMat(props.mat)
+    // }, [props.mat])
+
+
+    // useEffect(() => {
+    //     props.setMousePosition(props.position)
+    //     props.setIsActive(props.isActive)
+    //     console.log(props.isActive)
+    // }, [props.position, props.isActive])
+
 
 
     return (
