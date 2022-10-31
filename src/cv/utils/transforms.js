@@ -31,13 +31,13 @@ export function apply_criterion(array, criterion_array, criterion, change) {
       new_array[i] = change(array.get(i))
     }
   }
-  return nj.array(new_array, "float32")
+  return nj.array(new_array, "uin8")
 }
 
 export function normalize(array) {
   const min = array.min()
   const max = array.max()
-  let new_array = nj.divide(nj.add(array, -min), max - min)
+  let new_array = nj.multiply(nj.divide(nj.add(array, -min), max - min), 255)
   return new_array
 }
 
