@@ -6,6 +6,7 @@ import cv, { CV_32F, InputArrayOfArrays } from "@techstark/opencv-js"
 import nj from "@d4c/numjs/build/module/numjs.min.js"
 import ReactSlider from 'react-slider'
 import { apply_windowing } from "../cv/utils/transforms";
+import Draggable from "react-draggable";
 
 function withParams(Component) {
     return props => <Component {...props} params={useParams()} />;
@@ -37,6 +38,8 @@ class AnnotatorWindow extends React.Component {
         this.floodFillFlags = 4 | cv.FLOODFILL_FIXED_RANGE | cv.FLOODFILL_MASK_ONLY | 255 << 8
         this.points = []
         this.pointIndex = undefined
+        this.isMove = false
+        this.scaleFactor = 1
 
         this.authRequestHeader = { // заголовки авторизации
             name: "Authorization",
@@ -53,6 +56,8 @@ class AnnotatorWindow extends React.Component {
         this.singleFloodFill = this.singleFloodFill.bind(this)
         this.floodFillActivate = this.floodFillActivate.bind(this)
         this.fillContoursActivate = this.fillContoursActivate.bind(this)
+        this.isMoving = this.isMoving.bind(this)
+        this.canvasSizeChange = this.canvasSizeChange.bind(this)
 
         this.canvas = undefined
         this.state = {"ww": this.ww, "wc": this.wc, "update": true}
@@ -180,16 +185,9 @@ class AnnotatorWindow extends React.Component {
         cv.bitwise_or(this.mask, floodMask, this.maskVisual) 
     }
 
-    pickMax(src, mask, dst) {
-        dst[0] = Math.max(src[0], mask[0])
-        dst[1] = Math.max(src[1], mask[1])
-        dst[2] = Math.max(src[2], mask[2])
-        dst[3] = Math.max(src[3], mask[3])
-    }
-
     updateImage() {
         // Combine mask and image
-        console.time('updateImage')
+        // console.time('updateImage')
 
         let viz = new cv.Mat();
         this.allContours = this.getContours(this.maskVisual, this.currentColor)
@@ -206,7 +204,7 @@ class AnnotatorWindow extends React.Component {
         // Clear memory
         viz.delete()
         maskVisualTemp.delete()
-        console.timeEnd('updateImage')
+        // console.timeEnd('updateImage')
     }
 
     drawCircle(color, thickness) {
@@ -264,19 +262,49 @@ class AnnotatorWindow extends React.Component {
         }
     }
 
+    canvasSizeChange(increase) {
+        if (increase) {
+            this.scaleFactor = this.scaleFactor + 0.025
+            this.scaleFactor = Math.min(this.scaleFactor, 2)
+        }
+        else {
+            this.scaleFactor = this.scaleFactor - 0.025
+            this.scaleFactor = Math.max(this.scaleFactor, 0.5)
+        }
+        console.log(this.scaleFactor)
+        this.canvas.style = `transform: translate(0px, 0px) scale(${this.scaleFactor})`
+    }
+
     handleMouseEvents() {
-        this.canvas.addEventListener("mousedown", () => {
-            this.mouseDown = true
+        this.canvas.addEventListener("mousedown", (e) => {
+            this.isMove = false
+            if (e.button === 1) {
+                this.isMove = true
+                this.mouseDown = false
+            }
+            if (e.button === 0) {
+                this.mouseDown = true
+            }
         })
-        this.canvas.addEventListener("mouseup", () => {
+        this.canvas.addEventListener("mouseup", (e) => {
             this.mouseDown = false
         })
+        this.canvas.addEventListener("wheel", (e) => {
+            this.canvasSizeChange(e.deltaY < 0)
+        })
+    }
+
+    isMoving() {
+        return this.isMove
     }
 
     render() {
         return (
             <div className="Annotator">
-                <canvas onMouseDownCapture={this.mouseCallback} onMouseUpCapture={this.mouseCallback} onMouseMove={this.mouseCallback} id="canvas"></canvas>
+                <Draggable onStart={this.isMoving} allowAnyClick={true}>
+                    <canvas onMouseDownCapture={this.mouseCallback} onMouseUpCapture={this.mouseCallback} onMouseMove={this.mouseCallback} id="canvas"></canvas>
+                    
+                </Draggable>
                 <br />
                 <br />
                 <button onClick={() => this.setTool("Paint")}>Paint</button>
