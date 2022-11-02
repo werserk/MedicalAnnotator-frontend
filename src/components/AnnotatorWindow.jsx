@@ -2,7 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { BASE_URL } from "../constans";
 import dwv from 'dwv'
-import cv, { CV_32F, InputArrayOfArrays } from "@techstark/opencv-js"
+import cv, { CV_32F, InputArrayOfArrays, MatVector } from "@techstark/opencv-js"
 import nj from "@d4c/numjs/build/module/numjs.min.js"
 import ReactSlider from 'react-slider'
 import { apply_windowing } from "../cv/utils/transforms";
@@ -31,14 +31,18 @@ class AnnotatorWindow extends React.Component {
         this.mouseDown = false
         this.mousePosition = {x: 0, y: 0}
         this.currentColor = [0, 255, 0, 0]
+
         this.blockColor = [1, 1, 1, 1]
         this.trueColor = [255, 255, 255, 255]
         this.contourFillFlag = cv.RETR_TREE
         this.tolerance = 5
         this.floodFillFlags = 4 | cv.FLOODFILL_FIXED_RANGE | cv.FLOODFILL_MASK_ONLY | 255 << 8
+
         this.points = []
         this.pointIndex = undefined
         this.isMove = false
+        this.polygons = [[]]
+        this.polygonIndex = undefined
         this.scaleFactor = 1
 
         this.authRequestHeader = { // заголовки авторизации
@@ -60,8 +64,6 @@ class AnnotatorWindow extends React.Component {
         this.canvasSizeChange = this.canvasSizeChange.bind(this)
 
         this.canvas = undefined
-        this.state = {"ww": this.ww, "wc": this.wc, "update": true}
-
     }
 
     initApp() {
@@ -185,18 +187,200 @@ class AnnotatorWindow extends React.Component {
         cv.bitwise_or(this.mask, floodMask, this.maskVisual) 
     }
 
+    drawPolylines(image) {
+        for (let i=0; i < this.polygons.length; i++) {
+            let polygon = this.polygons[i]
+            // Если отрезок ещё не установлен, то вторая координата - мышь
+            if (polygon.length === 0) {
+                continue
+            }
+            if (i === this.polygons.length) {
+                polygon.push([(self.x, self.y)])
+            }
+            // Если на отрезок наведён курсор, то её цвет - белый, иначе - зелёный
+            let prev_point = {}, point = {}
+            Object.assign(prev_point, polygon[0]);
+            let color
+            if ((i !== this.polygonIndex) || (this.pointIndex !== 0)) {
+                color = this.currentColor
+            }
+            else {
+                color = [255, 255, 255, 0]
+            }
+                
+            cv.circle(image, prev_point, this.brushSize, color, 1, cv.LINE_AA)
+            for (let j=1; j < polygon.length; j++) {
+                Object.assign(point, polygon[j]);
+
+                if ((i !== this.polygonIndex) || (j + 1 !== this.pointIndex)) {
+                    color = this.currentColor
+                }
+                else {
+                    color = [255, 255, 255, 0]
+                }
+                cv.line(image, prev_point, point, this.currentColor, 1, cv.LINE_AA)
+                cv.circle(image, point, this.brushSize, color, 1, cv.LINE_AA)
+                Object.assign(prev_point, point);
+            }
+            cv.line(image, prev_point, polygon[0], this.currentColor, 1, cv.LINE_AA)
+        }
+        return image
+    }
+
+    distanceBetweenPoints(p1, p2, spacing=[1, 1]) {
+        return (((p1[0] - p2[0]) * spacing[1]) ** 2 + ((p1[1] - p2[1]) * spacing[0]) ** 2) ** 0.5
+    }
+
+    findClosestPoint() {
+        let closestPolygon, closestPoint
+        let minDistance = 99999
+        for (let i=0; i < this.polygons.length; i++) {
+            let polygon = this.polygons[i]
+            if (polygon.length === 0) {
+                continue
+            }
+            for (let j=0; j < polygon.length; j++) {
+                let point = polygon[j]
+                let distance = this.distanceBetweenPoints(point, this.mousePosition)
+                if (distance < minDistance) {
+                    minDistance = distance
+                    closestPolygon = i
+                    closestPoint = j
+                }
+            }
+        }
+        if (minDistance < this.objectCorrectionDistance) {
+            closestPoint = undefined
+            closestPolygon = undefined
+        }
+        return [closestPolygon, closestPoint]
+    }
+
+    findClosestLine() {
+        let closestPolygon, closestPoint
+        let minDistance = 99999
+        for (let i=0; i < this.polygons.length; i++) {
+            let polygon = this.polygons[i]
+            if (polygon.length === 0) {
+                continue
+            }
+            for (let j=1; j < this.polygons.length; j++) {
+                let [x1, y1] = this.polygons[j - 1]
+                let [x2, y2] = this.polygons[j]
+                let b = undefined
+                if (x1 - x2 !== 0) {
+                    b = (y1 - y2) / (x1 - x2)
+                }
+                if (b === 0) {
+                    continue
+                }
+                let distance
+                if (b !== undefined) {
+                    let c = y1 - b * x1
+                    distance = (Math.abs(this.mousePosition.y - b * this.mousePosition.x - c) / (b ** 2 + 1)) ** 0.5
+                }
+                else {
+                    distance = Math.abs(this.mousePosition.x - x1)
+                }
+                if (distance < minDistance) {
+                    minDistance = distance
+                    closestPoint = [j, j + 1]
+                    closestPolygon = i
+                }
+            }
+        }
+        if (minDistance < this.objectCorrectionDistance) {
+            closestPoint = undefined
+            closestPolygon = undefined
+        }
+        return [closestPolygon, closestPoint]
+    }
+
+    isPointInPolygon(point, vs) {
+        let x = point[0]
+        let y = point[1]
+        let inside = false
+        for (let i=0, j=vs.length - 1; i < vs.length; j=i++) {
+            let xi = vs[i][0]
+            let yi = vs[i][1]
+            let xj = vs[j][0]
+            let yj = vs[j][1]
+            let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+            if (intersect) {
+                inside = true
+            }
+        }
+        return inside
+    }
+
+    findClosestPolygon() {
+        for (let i=0; i < this.polygons.length; i++) {
+            let polygon = this.polygons[i]
+            if (polygon.length === 0) {
+                continue
+            }
+            if (polygon.length > 2) {
+                if (this.isPointInPolygon(this.mousePosition, polygon)) {
+                    return [i, undefined]
+                }
+            }
+        }
+        return [undefined, undefined]
+    }
+
+    drawPolygons(mask) {
+        if (!this.mouseDown) {
+            [this.polygonIndex, this.pointIndex] = this.findClosestPoint()
+        
+            if (this.pointIndex === undefined) {
+                [this.polygonIndex, this.pointIndex] = this.findClosestLine()
+            }
+            if (this.polygonIndex === undefined) {
+                [this.polygonIndex, this.pointIndex] = this.findClosestPolygon()
+            }
+        }
+        for (let i=0; i < this.polygons.length; i++) {
+            let polygon = [...this.polygons[i]]
+            if (i === this.polygons.length - 1) {
+                polygon.push(this.mousePosition)
+            }
+            // console.log('polygon', this.polygons[i])
+            let color
+            if ((i == this.polygonIndex) && (this.pointIndex === undefined)) {
+                color = [255, 255, 255, 0]
+            }
+            else {
+                color = this.currentColor
+            }
+            if (polygon.length === 2) {
+                cv.line(mask, polygon[0], polygon[1], color, 1, cv.LINE_AA)
+            }
+            else {
+                if (polygon.length > 2) {
+                    cv.fillPoly(mask, [polygon], color, cv.LINE_AA)
+                }
+            }
+        }
+        return mask 
+    }
+
+    
     updateImage() {
         // Combine mask and image
-        // console.time('updateImage')
+        console.time('updateImage')
 
+        // SEGMENTATION
         let viz = new cv.Mat();
-        this.allContours = this.getContours(this.maskVisual, this.currentColor)
+        this.allContours = this.getContours(this.maskVisual, this.currentColor) // Получим контуры разметки кистью
         let maskVisualTemp = this.maskVisual.clone()
-       
+        
         cv.drawContours(maskVisualTemp, this.allContours, -1, this.currentColor, -1, cv.LINE_AA)
-        cv.addWeighted(this.mat, 0.75, maskVisualTemp, 0.25, 0, viz)
-        cv.drawContours(viz, this.allContours, -1, this.currentColor, 1, cv.LINE_AA)
-
+        let finalMask = maskVisualTemp.clone()
+        // finalMask = this.drawPolygons(finalMask) // Добавление полигонов на изображение
+        cv.addWeighted(this.mat, 0.75, finalMask, 0.25, 0, viz) // Добавление растровой маски на изображения
+        cv.drawContours(viz, this.allContours, -1, this.currentColor, 1, cv.LINE_AA) // Отрисовка контуров разметки кистью
+        viz = this.drawPolylines(viz) // Отрисовка линий в полигонах
+        
         // Update canvas
         cv.circle(viz, this.mousePosition, this.brushSize, [255, 255, 255, 0], 1, cv.LINE_AA)
         cv.imshow("canvas", viz)
@@ -204,7 +388,7 @@ class AnnotatorWindow extends React.Component {
         // Clear memory
         viz.delete()
         maskVisualTemp.delete()
-        // console.timeEnd('updateImage')
+        console.timeEnd('updateImage')
     }
 
     drawCircle(color, thickness) {
@@ -215,6 +399,16 @@ class AnnotatorWindow extends React.Component {
     clearMask() {
         this.mask = this.emptyMask3C.clone()
         this.maskVisual = this.emptyMask3C.clone()
+        this.floodMask = this.emptyMask.clone()
+
+        this.points = []
+        this.pointIndex = undefined
+        this.isMove = false
+        this.polygons = [[]]
+        this.polygonIndex = undefined
+        this.scaleFactor = 1
+
+        this.allContours = new cv.MatVector()
         this.updateImage()
     }
 
@@ -237,8 +431,54 @@ class AnnotatorWindow extends React.Component {
         this.updateImage()
     }
 
+    putPoint() {
+        if (this.tool === "Polygons") {
+            console.log(this.polygons)
+            let polygon = this.polygons[this.polygons.length - 1]
+            console.log('polygon', polygon)
+            if (this.polygonIndex !== undefined) {
+                if (this.pointIndex === 0) {
+                    if (polygon.length !== 0) {
+                        polygon.push(polygon[0])
+                        this.pointIndex = undefined
+                        this.polygons.push([])
+                    }
+                }
+            }
+            else {
+                polygon.push(this.mousePosition)
+            }
+        }
+    this.updateImage()
+    }
+
+    removePoint() {
+        if (this.tool === "Polygons") {
+            let polygon = this.polygons[this.polygons.length - 1]
+            if (polygon.length === 0) {
+                if (this.polygonIndex === undefined) {
+                    return
+                }
+                if (this.pointIndex === undefined) {
+                    this.polygons.splice(this.polygonIndex)
+                }
+                else {
+                    this.polygons[this.polygonIndex].splice(this.pointIndex)
+                }
+            }
+            else {
+                polygon.push(polygon[0])
+            }
+        }
+        this.updateImage()
+    }
+    
+
     mouseCallback() {       
         if (this.mouseDown) {
+            if (this.isMove) {
+                
+            }
             if (this.tool === "Paint") {
                 this.canvas.onmousemove = (e) => {
                     this.mousePosition = {x: e.clientX - e.target.offsetLeft, y: e.clientY - e.target.offsetTop} // mouse position
@@ -253,6 +493,13 @@ class AnnotatorWindow extends React.Component {
                     this.updateImage()
                 }
             }
+            // if (this.tool === "Polygon") {
+            //     this.canvas.onmousemove = (e) => {
+            //         this.mousePosition = {x: e.clientX - e.target.offsetLeft, y: e.clientY - e.target.offsetTop} // mouse position
+            //         this.drawCircle([0, 0, 0, 0], -1)
+            //         this.updateImage()
+            //     }
+            // }
         }
         else {
             this.canvas.onmousemove = (e) => {
@@ -277,13 +524,18 @@ class AnnotatorWindow extends React.Component {
 
     handleMouseEvents() {
         this.canvas.addEventListener("mousedown", (e) => {
-            this.isMove = false
+            this.mouseDown = true
             if (e.button === 1) {
                 this.isMove = true
-                this.mouseDown = false
             }
-            if (e.button === 0) {
-                this.mouseDown = true
+            else {
+                this.isMove = false
+            }
+            if (this.tool === "Polygons") {
+                if (this.pointIndex === undefined) {
+                    console.log('putPoint')
+                    this.putPoint()
+                }
             }
         })
         this.canvas.addEventListener("mouseup", (e) => {
@@ -301,13 +553,13 @@ class AnnotatorWindow extends React.Component {
     render() {
         return (
             <div className="Annotator">
-                <Draggable onStart={this.isMoving} allowAnyClick={true}>
-                    <canvas onMouseDownCapture={this.mouseCallback} onMouseUpCapture={this.mouseCallback} onMouseMove={this.mouseCallback} id="canvas"></canvas>
-                    
-                </Draggable>
+                <canvas onMouseDownCapture={this.mouseCallback} onMouseUpCapture={this.mouseCallback} onMouseMove={this.mouseCallback} id="canvas"></canvas>
                 <br />
                 <br />
                 <button onClick={() => this.setTool("Paint")}>Paint</button>
+                <br />
+                <br />
+                <button onClick={() => this.setTool("Polygons")}>Polygons</button>
                 <br />
                 <br />
                 <button onClick={this.fillContoursActivate}>Fill contours</button>
