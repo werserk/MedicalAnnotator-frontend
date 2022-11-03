@@ -28,7 +28,8 @@ class AnnotatorWindow extends React.Component {
         this.wc = 40
         this.ww = 400
         this.brushSize = 5
-        this.mouseDown = false
+        this.leftButtonDown = false
+        this.this.middleButtonDown = false
         this.mousePosition = {x: 0, y: 0}
         this.currentColor = [0, 255, 0, 0]
 
@@ -40,7 +41,6 @@ class AnnotatorWindow extends React.Component {
 
         this.points = []
         this.pointIndex = undefined
-        this.isMove = false
         this.polygons = [[]]
         this.polygonIndex = undefined
         this.scaleFactor = 1
@@ -189,13 +189,13 @@ class AnnotatorWindow extends React.Component {
 
     drawPolylines(image) {
         for (let i=0; i < this.polygons.length; i++) {
-            let polygon = this.polygons[i]
+            let polygon = [...this.polygons[i]]
             // Если отрезок ещё не установлен, то вторая координата - мышь
             if (polygon.length === 0) {
                 continue
             }
-            if (i === this.polygons.length) {
-                polygon.push([(self.x, self.y)])
+            if (i === this.polygons.length - 1) {
+                polygon.push(this.mousePosition)
             }
             // Если на отрезок наведён курсор, то её цвет - белый, иначе - зелёный
             let prev_point = {}, point = {}
@@ -329,7 +329,7 @@ class AnnotatorWindow extends React.Component {
     }
 
     drawPolygons(mask) {
-        if (!this.mouseDown) {
+        if (!this.leftButtonDown) {
             [this.polygonIndex, this.pointIndex] = this.findClosestPoint()
         
             if (this.pointIndex === undefined) {
@@ -367,8 +367,6 @@ class AnnotatorWindow extends React.Component {
     
     updateImage() {
         // Combine mask and image
-        console.time('updateImage')
-
         // SEGMENTATION
         let viz = new cv.Mat();
         this.allContours = this.getContours(this.maskVisual, this.currentColor) // Получим контуры разметки кистью
@@ -388,7 +386,7 @@ class AnnotatorWindow extends React.Component {
         // Clear memory
         viz.delete()
         maskVisualTemp.delete()
-        console.timeEnd('updateImage')
+        finalMask.delete()
     }
 
     drawCircle(color, thickness) {
@@ -403,7 +401,7 @@ class AnnotatorWindow extends React.Component {
 
         this.points = []
         this.pointIndex = undefined
-        this.isMove = false
+        this.middleButtonDown = false
         this.polygons = [[]]
         this.polygonIndex = undefined
         this.scaleFactor = 1
@@ -472,11 +470,38 @@ class AnnotatorWindow extends React.Component {
         }
         this.updateImage()
     }
+
+    movePoint(prev, current) {
+        if (this.tool === "Polygons") {
+            if (this.pointIndex !== undefined) {
+                let point = this.polygons[this.polygonIndex][this.pointIndex]
+                point.x = point.x - (prev.x - current.x)
+                point.y = point.y - (prev.y - current.y)
+            }
+            else {
+                for (let i=0; i < this.polygons[this.polygonIndex].length; i++) {
+                    let point = this.polygons[this.polygonIndex][i]
+                    point.x = point.x - (prev.x - current.x)
+                    point.y = point.y - (prev.y - current.y)
+                }
+            }
+        }
+    }
     
+    tryToMovePolygon() {
+        if (this.leftButtonDown && (this.polygonIndex !== undefined)) {
+            if ((this.pointIndex === this.polygons[this.polygonIndex].length - 1) || this.pointIndex === 0) {
+                this.pointIndex = 0
+                this.movePoint(this.prevMousePosition, this.mousePosition)
+                this.pointIndex = this.polygons[this.polygonIndex].length - 1
+            }
+            this.movePoint(this.prevMousePosition, this.mousePosition)
+        }
+    }
 
     mouseCallback() {       
-        if (this.mouseDown) {
-            if (this.isMove) {
+        if (this.leftButtonDown) {
+            if (this.middleButtonDown) {
                 
             }
             if (this.tool === "Paint") {
@@ -493,18 +518,19 @@ class AnnotatorWindow extends React.Component {
                     this.updateImage()
                 }
             }
-            // if (this.tool === "Polygon") {
-            //     this.canvas.onmousemove = (e) => {
-            //         this.mousePosition = {x: e.clientX - e.target.offsetLeft, y: e.clientY - e.target.offsetTop} // mouse position
-            //         this.drawCircle([0, 0, 0, 0], -1)
-            //         this.updateImage()
-            //     }
-            // }
+            if (this.tool === "Polygons") {
+                this.canvas.onmousemove = (e) => {
+                    this.prevMousePosition = {}
+                    Object.assign(prevMousePosition, this.mousePosition);
+                    this.mousePosition = {x: e.clientX - e.target.offsetLeft, y: e.clientY - e.target.offsetTop} // mouse position
+                    this.updateImage()
+                }
+            }
         }
         else {
             this.canvas.onmousemove = (e) => {
                 this.mousePosition = {x: e.clientX - e.target.offsetLeft, y: e.clientY - e.target.offsetTop} // mouse position
-                // this.updateImage()
+                this.updateImage()
             }
         }
     }
@@ -524,22 +550,34 @@ class AnnotatorWindow extends React.Component {
 
     handleMouseEvents() {
         this.canvas.addEventListener("mousedown", (e) => {
-            this.mouseDown = true
+            if (e.button === 0) {
+                this.leftButtonDown = true
+            }
             if (e.button === 1) {
-                this.isMove = true
+                this.middleButtonDown = true
             }
-            else {
-                this.isMove = false
+            if (e.button === 2) {
+                this.rightButtonDown = true
             }
-            if (this.tool === "Polygons") {
+
+            if ((this.tool === "Polygons") && this.leftButtonDown) {
                 if (this.pointIndex === undefined) {
                     console.log('putPoint')
                     this.putPoint()
                 }
             }
         })
+
         this.canvas.addEventListener("mouseup", (e) => {
-            this.mouseDown = false
+            if (e.button === 0) {
+                this.leftButtonDown = false
+            }
+            if (e.button === 1) {
+                this.middleButtonDown = false
+            }
+            if (e.button === 2) {
+                this.rightButtonDown = false
+            }
         })
         this.canvas.addEventListener("wheel", (e) => {
             this.canvasSizeChange(e.deltaY < 0)
@@ -547,7 +585,7 @@ class AnnotatorWindow extends React.Component {
     }
 
     isMoving() {
-        return this.isMove
+        return this.middleButtonDown
     }
 
     render() {
