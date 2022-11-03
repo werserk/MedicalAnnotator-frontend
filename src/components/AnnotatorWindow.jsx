@@ -7,6 +7,7 @@ import nj from "@d4c/numjs/build/module/numjs.min.js"
 import ReactSlider from 'react-slider'
 import { apply_windowing } from "../cv/utils/transforms";
 import Draggable from "react-draggable";
+import { array } from "prop-types";
 
 function withParams(Component) {
     return props => <Component {...props} params={useParams()} />;
@@ -354,11 +355,23 @@ class AnnotatorWindow extends React.Component {
             if (polygon.length === 2) {
                 cv.line(mask, polygon[0], polygon[1], color, 1, cv.LINE_AA)
             }
-            // else {
-                // if (polygon.length > 2) {
-                    // cv.fillPoly(mask, [polygon], color, cv.LINE_AA)
-                // }
-            // }
+            else {
+                if (polygon.length > 2) {
+                    let array_polygon = []
+                    for (let j=0; j < polygon.length; j++) {
+                        array_polygon.push(polygon[j].x)
+                        array_polygon.push(polygon[j].y)
+                    }
+                    let square_point_data = new Int32Array(array_polygon)
+                    console.log('array_polygon', array_polygon)
+                    console.log('square_point_data', square_point_data)
+                    let npts = polygon.length
+                    let square_points = cv.matFromArray(npts, 1, cv.CV_32SC2, square_point_data)
+                    let pts = new cv.MatVector()
+                    pts.push_back(square_points)
+                    cv.fillPoly(mask, pts, color)
+                }
+            }
         }
         return mask 
     }
@@ -431,7 +444,7 @@ class AnnotatorWindow extends React.Component {
     putPoint() {
         if (this.tool === "Polygons") {
             let polygon = this.polygons[this.polygons.length - 1]
-            if ((this.polygonIndex === undefined) && (polygon[-1] !== this.mousePosition)) {
+            if ((this.polygonIndex === undefined) && (polygon[polygon.length - 1] !== this.mousePosition)) {
                 polygon.push(this.mousePosition)
             }
         }
