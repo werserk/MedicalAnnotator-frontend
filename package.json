@@ -18,6 +18,7 @@
     "react": "^18.2.0",
     "react-cursor-position": "^3.0.3",
     "react-dom": "^18.2.0",
+    "react-draggable": "^4.4.5",
     "react-range": "^1.8.14",
     "react-redux": "^8.0.4",
     "react-router-dom": "^6.4.2",
