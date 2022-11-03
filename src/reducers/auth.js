@@ -4,8 +4,7 @@ import {
     LOGOUT,
     REFRESH_TOKEN,
     REFRESH_TOKEN_FAILED,
-    LOADING,
-    GET_USER_DATA
+    LOADING
 } from "../actions/types"
 
 const initialState = {
@@ -44,6 +43,7 @@ export default function(state=initialState, action) {
             }
         case REFRESH_TOKEN:
             localStorage.setItem("token", payload.access)
+            localStorage.setItem("refresh", payload.refresh)
             return {
                 ...state,
                 isAuthenticated: true,
@@ -59,13 +59,6 @@ export default function(state=initialState, action) {
                 loading: false,
                 token: null,
                 refresh: null
-            }
-        case GET_USER_DATA:
-            return {
-                ...state,
-                user: payload,
-                isAuthenticated: true,
-                loading: false,
             }
         case LOADING:
             return {

@@ -57,7 +57,11 @@ const FileUpload = ({ getStudies }) => {
         } else {
             const formData = new FormData();
             formData.append('file', file);
-            if (file.name.split(".")[file.name.split(".").length - 1] === "dcm" || file.name.split(".")[file.name.split(".").length - 1] === "zip") {
+
+            if (file.name.split(".")[file.name.split(".").length - 1] === "dcm" ||
+                file.name.split(".")[file.name.split(".").length - 1] === "zip" ||
+                file.name.split(".")[file.name.split(".").length - 1] == file.name) 
+            {
                 try {
                     axios.put(url, formData, config).then((response) => {
                         success(response.data["success"]);
