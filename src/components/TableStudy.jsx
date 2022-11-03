@@ -18,40 +18,44 @@ function TableStudy({ openEditPopup, openDeletePopup, filteredTable }) {
         <div></div>
       </div>
 
-      {filteredTable.map((study) => {
-        return (
-          <div className="table__list table__list_name_study" key={study.id}>
-            <div className="table__item">{study.id}</div>
-            <div className="table__item">{study.name}</div>
-            <div className="table__item">{study.dateDownload}</div>
-            <div className="table__item">{study.dateStudy}</div>
-            <div className="table__item">{study.modal}</div>
-            <div className="table__item">{study.condition}</div>
-            <div className="table__item">
-              <button
-                type="button"
-                className="table__btn"
-                onClick={openEditPopup}
-              >
-                <img className="table__icon" src={pensil} alt="Редактировать" />
-              </button>
+      {filteredTable.length !== 0 ? (
+        filteredTable.map((study) => {
+          return (
+            <div className="table__list table__list_name_study" key={study.id}>
+              <div className="table__item">{study.id}</div>
+              <div className="table__item">{study.name}</div>
+              <div className="table__item">{study.dateDownload}</div>
+              <div className="table__item">{study.dateStudy}</div>
+              <div className="table__item">{study.modal}</div>
+              <div className="table__item">{study.condition}</div>
+              <div className="table__item">
+                <button
+                  type="button"
+                  className="table__btn"
+                  onClick={openEditPopup}
+                >
+                  <img className="table__icon" src={pensil} alt="Редактировать" />
+                </button>
+              </div>
+              <div className="table__item">
+                <button
+                  type="button"
+                  className="table__btn"
+                  onClick={openDeletePopup}
+                >
+                  <img
+                    className="table__icon table__icon_name_delete"
+                    src={deleteIcon}
+                    alt="Удалить"
+                  />
+                </button>
+              </div>
             </div>
-            <div className="table__item">
-              <button
-                type="button"
-                className="table__btn"
-                onClick={openDeletePopup}
-              >
-                <img
-                  className="table__icon table__icon_name_delete"
-                  src={deleteIcon}
-                  alt="Удалить"
-                />
-              </button>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })
+      ) : (
+        <div className="table__nothing">Ничего не найдено</div>
+      )}
     </div>
   );
 }

@@ -65,3 +65,10 @@
   width: 18px;
   height: 18px;
 }
+
+.table__nothing {
+  text-align: center;
+  padding: 30px 5px;
+  border-bottom: 1px solid #dfdfdf;
+  color: #a0a0a0;
+}

@@ -13,6 +13,7 @@ import Marker from "./components/Marker";
 import Header from "./components/Header";
 import PopupWithForm from "./elements/PopupWithForm";
 import PopupInfo from "./elements/PopupInfo";
+import Preloader from "./components/Preloader";
 import { useState } from "react";
 
 function App() {
@@ -24,6 +25,8 @@ function App() {
   const [isOpenErrorPopup, setIsOpenErrorPopup] = useState(false); //Попап ошибки
 
   const [isGenerated, setIsGenerated] = useState(false); //Сгенерированы ли патологии
+
+  const [isLoading, setIsLoading] = useState(false); //Прелоадер
 
   function closeAllPopups() {
     setIsOpenEditPopup(false);
@@ -170,6 +173,8 @@ function App() {
         isOpen={isOpenErrorPopup}
         onClose={closeAllPopups}
       />
+
+      <Preloader isLoading={isLoading} />
     </>
   );
 }

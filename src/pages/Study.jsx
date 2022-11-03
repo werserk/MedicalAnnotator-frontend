@@ -9,10 +9,8 @@ function Study({ openEditPopup, openDeletePopup, openAddPopup }) {
   const [filteredTable, setFilteredTable] = useState([]);
   const [filters, setFilters] = useState({
     name: "",
-    dateDownloadFrom: "",
-    dateDownloadTo: "",
-    dateStudyFrom: "",
-    dateStudyTo: "",
+    dateDownload: "",
+    dateStudy: "",
     modal: "",
     condition: "",
   });
@@ -28,11 +26,28 @@ function Study({ openEditPopup, openDeletePopup, openAddPopup }) {
   function handleFilter(e) {
     e.preventDefault();
 
+    let table = tableStudy;
+    let filterIsClean = true;
+
     for (let key in filters) {
       if (filters[key] !== "") {
-        console.log(key);
-        console.log(filteredTable[key]);
+        filterIsClean = false;
+        let newTable = [];
+
+        table.map((item) => {
+          if (item[key].includes(filters[key])) {
+            newTable.push(item);
+          }
+        });
+
+        table = newTable;
       }
+    }
+
+    if (!filterIsClean) {
+      setFilteredTable(table);
+    } else {
+      setFilteredTable(tableStudy);
     }
   }
 
@@ -40,10 +55,8 @@ function Study({ openEditPopup, openDeletePopup, openAddPopup }) {
     setFilteredTable(tableStudy);
     setFilters({
       name: "",
-      dateDownloadFrom: "",
-      dateDownloadTo: "",
-      dateStudyFrom: "",
-      dateStudyTo: "",
+      dateDownload: "",
+      dateStudy: "",
       modal: "",
       condition: "",
     });

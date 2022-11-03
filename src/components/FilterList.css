@@ -1,7 +1,8 @@
 .filter {
   border: 1px solid #dfdfdf;
   padding: 20px;
-  max-height: 100%;
+  max-height: calc(100% - 8px);
+  height: max-content;
   overflow-x: auto;
   box-sizing: border-box;
 }
