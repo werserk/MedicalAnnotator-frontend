@@ -1,0 +1,83 @@
+.instruments {
+  border-right: 1px solid #cfcfcf;
+  background-color: #ececec;
+  width: 50px;
+  padding: 22px 0;
+  height: 100%;
+  box-sizing: border-box;
+  /* overflow-x: auto; */
+}
+
+.instruments__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.instruments__item {
+  margin-bottom: 10px;
+  padding: 5px;
+  box-sizing: border-box;
+  line-height: 0;
+  border-radius: 3px;
+}
+
+.instruments__item_active {
+  background-color: #cfcfcf;
+}
+
+.instruments__item_type_line {
+  width: 100%;
+  height: 1px;
+  background-color: #cfcfcf;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Instrument */
+
+.instrument {
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+.instrument__img {
+  opacity: 1;
+  transition: opacity 0.1s ease-in-out;
+}
+
+.instrument:hover .instrument__img {
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+
+.instrument__info {
+  background-color: #fff;
+  border-radius: 3px;
+  padding: 2px 5px 3px;
+  color: #000;
+  font-size: 10px;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  transition-delay: 1s;
+  visibility: hidden;
+  border: 1px solid #cfcfcf;
+  top: calc(100% + 3px);
+  left: 13px;
+  z-index: 10;
+}
+
+.instrument:hover .instrument__info {
+  opacity: 1;
+  visibility: visible;
+}

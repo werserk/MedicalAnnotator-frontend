@@ -1,0 +1,101 @@
+.pull-out-menu {
+  position: fixed;
+  bottom: -47px;
+  left: 0;
+  width: 100%;
+  background-color: #ececec;
+  border-top: 1px solid #cfcfcf;
+  background-image: url(../assets/images/arrow-top.svg);
+  background-repeat: no-repeat;
+  background-size: 40px 14px;
+  background-position: center top+5px;
+  padding: 20px 26px 0;
+  transition: bottom 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.pull-out-menu:hover {
+  bottom: 0;
+}
+
+.pull-out-menu__list {
+  list-style: none;
+  padding: 6px 0 7px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.pull-out-menu__item:not(:last-child) {
+  margin-right: 26px;
+}
+
+.pull-out-menu__item {
+  display: flex;
+  align-items: center;
+}
+
+.pull-out-menu__label {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.25;
+  color: #000000;
+  margin-right: 12px;
+}
+
+.pull-out-menu__input {
+  background-color: #f9f9f9;
+  padding: 10px 10px 11px 15px;
+  border-radius: 5px;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #000000;
+  border: 1px solid #f9f9f9;
+  max-width: 80px;
+  box-sizing: border-box;
+}
+
+.pull-out-menu__input:active,
+.pull-out-menu__input:focus,
+.pull-out-menu__input:focus-visible {
+  border-color: #5693e1;
+  outline: none;
+}
+
+.pull-out-menu__input_type_range {
+  padding: 8px 10px 9px 15px;
+  margin: 0;
+  max-width: 100px;
+}
+
+.pull-out-menu__value {
+  margin-left: 5px;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #000000;
+  width: 26px;
+  text-align: center;
+}
+
+.pull-out-menu__select {
+  display: block;
+  border-radius: 5px;
+  padding: 10px 26px 10px 13px;
+  border: 1px solid #f9f9f9;
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  background-color: #f9f9f9;
+  background-image: url(/src/assets/images/arrow-bottom.svg);
+  background-repeat: no-repeat;
+  background-position: calc(100% - 12px) center;
+  background-size: 12px;
+  margin-right: 22px;
+  font-family: "IBM Plex Mono", Arial, Helvetica, sans-serif;
+  outline: none !important;
+}
