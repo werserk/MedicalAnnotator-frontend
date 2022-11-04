@@ -136,6 +136,34 @@ class AnnotatorWindow extends React.Component {
         return true
     }
 
+    createJsonData() {
+        const data = {
+            'mask': this.mask,
+            'floodFillMask': this.floodMask,
+            'rulers': this.rulers,
+            'polygons': this.polygons,
+            'points': this.points}
+        return data
+    }
+
+    exportJsonData() {
+        data = this.createJsonData()
+        // send
+    }
+
+    importJsonData() {
+        // get
+        this.loadJsonData(data)
+    }
+
+    loadJsonData(data) {
+        this.mask = data['mask']
+        this.floodMask = data['floodFillMask']
+        this.rulers = data['rulers']
+        this.polygons = data['polygons']
+        this.points = data['points']
+    }
+    
     //////////////////////
     // OPENCV FUNCTIONS //
     //////////////////////
@@ -606,7 +634,7 @@ class AnnotatorWindow extends React.Component {
                 else {
                     this.polygons.push([])
                 }
-            }
+            }   
             this.pointIndex = undefined
             this.polygonIndex = undefined
         }
