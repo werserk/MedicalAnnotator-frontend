@@ -7,7 +7,7 @@ import nj from "@d4c/numjs/build/module/numjs.min.js"
 import ReactSlider from 'react-slider'
 import { apply_windowing } from "../cv/utils/transforms";
 import Draggable from "react-draggable";
-import { array } from "prop-types";
+import axios from "axios";
 
 function withParams(Component) {
     return props => <Component {...props} params={useParams()} />;
@@ -23,7 +23,7 @@ class AnnotatorWindow extends React.Component {
 
     constructor (props) {
         super(props)
-        this.fetchUrl = BASE_URL + `api/instance/${this.props.params.study}/${this.props.params.instance}/`
+        this.fetchUrl = BASE_URL + `api/study/${this.props.params.study}`
 
         // Setup parameters
         this.wc = 40
@@ -76,17 +76,29 @@ class AnnotatorWindow extends React.Component {
         this.app.init({
             dataViewConfigs: {'*': []}
         });
+        const config = {
+            headers: {
+                "Authorization": this.authRequestHeader.value
+            }
+        }
+        axios.get(this.fetchUrl, config).then((response) => {
+            const paths = response.data["paths"][0]
+            const urls = []
+            for (let url of paths) {
+                urls.push(BASE_URL + "media/" + "?" + "path=" + url)
+            }
+            this.app.loadURLs(urls, {"requestHeaders": [this.authRequestHeader]})
+            this.app.addEventListener('loadend', () => {
+                const CV_NJLoadingHandle = setInterval(() => {
+                    if (cv && nj) {
+                        clearInterval(CV_NJLoadingHandle)
+                        this.createMat()
+                    }
+                }, 1000)
 
-        this.app.loadURLs([this.fetchUrl], {"requestHeaders": [this.authRequestHeader]})
-        this.app.addEventListener('loadend', () => {
-            const CV_NJLoadingHandle = setInterval(() => {
-                if (cv && nj) {
-                    clearInterval(CV_NJLoadingHandle)
-                    this.createMat()
-                }
-            }, 500)
-
-        });
+            });
+        })
+        
     }
 
     createMat() {
@@ -105,8 +117,9 @@ class AnnotatorWindow extends React.Component {
         this.geometry = this.image.getGeometry()
         this.shape = this.geometry.getSize().getValues() // width, height, deep'
 
-        this.buffer = this.image.getBuffer()
+        this.buffer = this.image.getBuffer() 
         this.Uint8Image = apply_windowing(new Float32Array(this.buffer), this.wc, this.ww)
+        console.log(this.Uint8Image)
 
         this.emptyMask = cv.Mat.zeros(this.shape[1], this.shape[0], cv.CV_8UC1)
         this.emptyMask3C = cv.Mat.zeros(this.shape[1], this.shape[0], cv.CV_8UC3)

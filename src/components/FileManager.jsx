@@ -37,27 +37,8 @@ const FileManager = () => {
         }
     }
 
-    const getInstances = (study) => {
-        setInstanceStudy(study)
-        setStudies([])
-        const url = BASE_URL + `api/instances/${study}/`
-
-        const config = {
-            headers: authRequestHeader
-        }
-
-        try {
-            axios.get(url, config).then((response) => {
-                setInstances(response.data)
-            })
-        } catch (e) {
-            console.error(e)
-            errorMsg("Не смогли получить список экземпляров исследований")
-        }
-    }
-
-    const markerInstance = (instaceName) => {
-        navigateTo(`/marker/${instanceStudy}/${instaceName}/`)
+    const markerInstance = (studyID) => {
+        navigateTo(`/marker/${studyID}/`)
     }
 
     useEffect(() => {
@@ -67,25 +48,13 @@ const FileManager = () => {
     return (
         <div className="file_manager">
             <FileUpload getStudies={getStudies}/>
-            {studies.length > 0 ?
-                <div className="file_manager__list">
-                    {studies.map((study, i) => (
-                        <div key={i} onClick={() => getInstances(study.name)} className="file_manager__list__item">
-                            <span className="file_manager__list__item__name">{study.name}</span>
-                        </div>
-                    ))}
-                </div>
-            : null}
-            {instances.length > 0 ?
-                <div className="file_manager__list">
-                    <button onClick={getStudies} className="file_manager__list_button_back">Back to studies</button>
-                    {instances.map((instance, i) => (
-                        <div key={i} onClick={() => markerInstance(instance.name)} className="file_manager__list__item">
-                            <span className="file_manager__list__item__name">{instance.name}</span>
-                        </div>
-                    ))}
-                </div>
-            : null}
+            <div className="file_manager__list">
+                {studies.map((study, i) => (
+                    <div key={i} onClick={() => markerInstance(study.unique_id)} className="file_manager__list__item">
+                        <span className="file_manager__list__item__name">{study.name}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
