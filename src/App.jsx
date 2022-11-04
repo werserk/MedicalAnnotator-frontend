@@ -57,7 +57,7 @@ const App = ({token, refresh, refreshToken}) => {
                 </Dashboard>
               }/>
               {token !== null && token !== undefined ? 
-                  <Route path="/marker/:study/:instance/" element={<AnnotatorWindow authToken={authRequestHeader}/>}/>
+                  <Route path="/marker/:study/" element={<AnnotatorWindow authToken={authRequestHeader}/>}/>
                : null}
             </Routes>
         </Router>
