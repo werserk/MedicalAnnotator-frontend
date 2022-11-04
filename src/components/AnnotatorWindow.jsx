@@ -203,22 +203,20 @@ class AnnotatorWindow extends React.Component {
             let prev_point = {}, point = {}
             Object.assign(prev_point, polygon[0]);
             let color
-            if ((i !== this.polygonIndex) || (this.pointIndex !== 0)) {
-                color = this.currentColor
+            color = this.currentColor
+            if (this.pointIndex !== undefined) {
+                if (this.pointIndex[0] === 0) {
+                    color = [255, 255, 255, 0]
+                }
             }
-            else {
-                color = [255, 255, 255, 0]
-            }
-                
             cv.circle(image, prev_point, this.brushSize, color, 1, cv.LINE_AA)
             for (let j=1; j < polygon.length; j++) {
                 Object.assign(point, polygon[j]);
-
-                if ((i !== this.polygonIndex) || (j + 1 !== this.pointIndex)) {
-                    color = this.currentColor
-                }
-                else {
-                    color = [255, 255, 255, 0]
+                color = this.currentColor
+                if (this.pointIndex !== undefined) {
+                    if (this.pointIndex[0] === j) {
+                        color = [255, 255, 255, 0]
+                    }
                 }
                 cv.line(image, prev_point, point, this.currentColor, 1, cv.LINE_AA)
                 cv.circle(image, point, this.brushSize, color, 1, cv.LINE_AA)
@@ -247,11 +245,11 @@ class AnnotatorWindow extends React.Component {
                 if (distance < minDistance) {
                     minDistance = distance
                     closestPolygon = i
-                    closestPoint = j
+                    closestPoint = [j]
                 }
             }
         }
-        if (minDistance > this.brushSize) {
+        if (minDistance > this.brushSize * 2) {
             closestPoint = undefined
             closestPolygon = undefined
         }
@@ -267,8 +265,8 @@ class AnnotatorWindow extends React.Component {
                 continue
             }
             for (let j=1; j < this.polygons.length; j++) {
-                let [x1, y1] = this.polygons[j - 1]
-                let [x2, y2] = this.polygons[j]
+                let [x1, y1] = [this.polygons[j - 1].x, this.polygons[j - 1].y]
+                let [x2, y2] = [this.polygons[j].x, this.polygons[j].y]
                 let b = undefined
                 if (x1 - x2 !== 0) {
                     b = (y1 - y2) / (x1 - x2)
@@ -299,17 +297,17 @@ class AnnotatorWindow extends React.Component {
     }
 
     isPointInPolygon(point, vs) {
-        let x = point[0]
-        let y = point[1]
+        let x = point.x
+        let y = point.y
         let inside = false
         for (let i=0, j=vs.length - 1; i < vs.length; j=i++) {
-            let xi = vs[i][0]
-            let yi = vs[i][1]
-            let xj = vs[j][0]
-            let yj = vs[j][1]
+            let xi = vs[i].x
+            let yi = vs[i].y
+            let xj = vs[j].x
+            let yj = vs[j].y
             let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
             if (intersect) {
-                inside = true
+                inside = !inside
             }
         }
         return inside
@@ -321,7 +319,7 @@ class AnnotatorWindow extends React.Component {
             if (polygon.length === 0) {
                 continue
             }
-            if (polygon.length > 2) {
+            if ((polygon.length > 2) && (polygon[polygon.length - 1] !== this.mousePosition)) {
                 if (this.isPointInPolygon(this.mousePosition, polygon)) {
                     return [i, undefined]
                 }
@@ -363,8 +361,6 @@ class AnnotatorWindow extends React.Component {
                         array_polygon.push(polygon[j].y)
                     }
                     let square_point_data = new Int32Array(array_polygon)
-                    console.log('array_polygon', array_polygon)
-                    console.log('square_point_data', square_point_data)
                     let npts = polygon.length
                     let square_points = cv.matFromArray(npts, 1, cv.CV_32SC2, square_point_data)
                     let pts = new cv.MatVector()
@@ -455,31 +451,36 @@ class AnnotatorWindow extends React.Component {
         if (this.tool === "Polygons") {
             let polygon = this.polygons[this.polygons.length - 1]
             if (polygon.length === 0) {
-                if (this.polygonIndex === undefined) {
-                    return
+                if ((this.polygonIndex !== undefined) && (this.pointIndex === undefined)) {
+                    this.polygons.splice(this.polygonIndex, 1)
+                    if (this.polygons.length === 0) {
+                        this.polygons.push([])
+                    }
                 }
-                if (this.pointIndex === undefined) {
-                    this.polygons.splice(this.polygonIndex)
-                }
-                else {
-                    this.polygons[this.polygonIndex].splice(this.pointIndex)
+                if ((this.polygonIndex !== undefined) && (this.pointIndex !== undefined)) {
+                    this.polygons[this.polygonIndex].splice(this.pointIndex[0], 1)
                 }
             }
             else {
-                polygon.push(polygon[0])
-                this.pointIndex = undefined
                 this.polygons.push([])
             }
         }
+        this.pointIndex = undefined
+        this.polygonIndex = undefined
         this.updateImage()
     }
 
     movePoint(prev, current) {
         if (this.tool === "Polygons") {
             if (this.pointIndex !== undefined) {
-                let point = this.polygons[this.polygonIndex][this.pointIndex]
+                let point = this.polygons[this.polygonIndex][this.pointIndex[0]]
                 point.x = point.x - (prev.x - current.x)
                 point.y = point.y - (prev.y - current.y)
+                if (this.pointIndex[1] !== undefined) {
+                    let point = this.polygons[this.polygonIndex][this.pointIndex[1]]
+                    point.x = point.x - (prev.x - current.x)
+                    point.y = point.y - (prev.y - current.y)
+                }
             }
             else {
                 for (let i=0; i < this.polygons[this.polygonIndex].length; i++) {
@@ -493,12 +494,9 @@ class AnnotatorWindow extends React.Component {
     
     tryToMovePolygon() {
         if (this.leftButtonDown && (this.polygonIndex !== undefined)) {
-            if ((this.pointIndex === this.polygons[this.polygonIndex].length - 1) || this.pointIndex === 0) {
-                this.pointIndex = 0
+            if (this.pointIndex !== undefined) {
                 this.movePoint(this.prevMousePosition, this.mousePosition)
-                this.pointIndex = this.polygons[this.polygonIndex].length - 1
             }
-            this.movePoint(this.prevMousePosition, this.mousePosition)
         }
     }
 
