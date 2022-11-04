@@ -27,8 +27,7 @@
     "redux-devtools-extension": "^2.13.9",
     "redux-thunk": "^2.4.1",
     "typedarray-pool": "^1.2.0",
-    "wc-toast": "^1.2.8",
-    "yarn": "^1.22.19"
+    "wc-toast": "^1.2.8"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",

@@ -20,7 +20,9 @@ const FileUpload = ({ getStudies }) => {
             setZipFile(0)
         } else {
             for (let i = 0; i < event.target.files.length; i++) {
-                if (files[i].name.split(".")[files[i].name.split(".").length - 1] === "dcm") {
+                if (files[i].name.split(".")[files[i].name.split(".").length - 1] === "dcm" ||
+                    files[i].name.split(".")[files[i].name.split(".").length - 1] == files[i].name) 
+                {
                     zip.file(files[i].name, files[i]);
                 } else {
                     errorMsg("Unsupported file format")
@@ -41,7 +43,7 @@ const FileUpload = ({ getStudies }) => {
         }
 
         if (!file && !zipFile) {
-            return errorMsg("File does not exist")
+            return errorMsg("Файл не обнаружен")
         } else if (!file) {
             zipFile.generateAsync({type: "blob"}).then(content => {
                 const formData = new FormData();
@@ -49,9 +51,11 @@ const FileUpload = ({ getStudies }) => {
                 try {
                     axios.put(url, formData, config).then((response) => {
                         success(response.data["success"]);
-                    });
+                    }).catch((e) => {
+                        errorMsg(e.response.data["error"])
+                    })
                 } catch (e) {
-                    error(e.response.data["error"])
+                   console.log(e)
                 }
             });
         } else {
@@ -61,13 +65,14 @@ const FileUpload = ({ getStudies }) => {
             if (file.name.split(".")[file.name.split(".").length - 1] === "dcm" ||
                 file.name.split(".")[file.name.split(".").length - 1] === "zip" ||
                 file.name.split(".")[file.name.split(".").length - 1] == file.name) 
+                
             {
                 try {
                     axios.put(url, formData, config).then((response) => {
                         success(response.data["success"]);
                     });
                 } catch (e) {
-                    error(e.response.data["error"])
+                    errorMsg(e.response.data["error"])
                 }
             
             } else {
