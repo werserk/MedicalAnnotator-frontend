@@ -149,8 +149,21 @@ function App() {
     return false;
   }
 
-  function choiceUser(user) {
-    console.log(user);
+  function choiceUser(userId) {
+    setIsLoading(true);
+
+    studiesApi
+      .getUserStudies(userId)
+      .then((res) => {
+        setStudies(res);
+        closeAllPopups();
+      })
+      .catch((err) => {
+        console.log(err);
+        closeAllPopups();
+        openErrorPopup(err.statusText);
+      })
+      .finally(setIsLoading(false));
   }
 
   function choiceStudy(study) {
@@ -186,7 +199,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/study"
+                  path="/users/:id"
                   exact
                   element={
                     <Study
@@ -196,9 +209,28 @@ function App() {
                       studies={studies}
                       getStudies={getStudies}
                       choiceStudy={choiceStudy}
+                      isSuperUser={isSuperUser}
+                      getUserStudies={choiceUser}
                     />
                   }
                 />
+                {!isSuperUser && 
+                <Route
+                path="/study"
+                exact
+                element={
+                  <Study
+                    openEditPopup={openEditPopup}
+                    openDeletePopup={openDeletePopup}
+                    openAddPopup={openAddPopup}
+                    studies={studies}
+                    getStudies={getStudies}
+                    choiceStudy={choiceStudy}
+                    isSuperUser={isSuperUser}
+                  />
+                }
+              />}
+                
                 <Route
                   path="/generation"
                   exact

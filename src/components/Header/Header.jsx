@@ -7,7 +7,7 @@ function Header({ isSuperUser }) {
 
   if (
     pathname !== "/" &&
-    pathname !== "/users" &&
+    !pathname.includes("/users") &&
     pathname !== "/dashboard" &&
     pathname !== "/study" &&
     pathname !== "/generation"

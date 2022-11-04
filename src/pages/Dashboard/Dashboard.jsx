@@ -40,6 +40,10 @@ function Dashboard() {
     console.log("Клик");
   }
 
+  function onClickSize() {
+    console.log("size");
+  }
+
   function onClickView() {
     setFourImage(!fourImage);
   }
@@ -71,16 +75,16 @@ function Dashboard() {
             </a>
             <ul className="dashboard__control-list">
               <li className="dashboard__control-item">
-                <Instrument img={exportIcon} alt="Экспорт" onClick={onClick} />
+                <Instrument img={exportIcon} alt="Экспорт" onClick={onClick} disabled={false} />
               </li>
               <li className="dashboard__control-item">
-                <Instrument img={importIcon} alt="Импорт" onClick={onClick} />
+                <Instrument img={importIcon} alt="Импорт" onClick={onClick} disabled={false} />
               </li>
               <li className="dashboard__control-item">
-                <Instrument img={cancel} alt="Отменить" onClick={onClick} />
+                <Instrument img={cancel} alt="Отменить" onClick={onClick} disabled={false} />
               </li>
               <li className="dashboard__control-item">
-                <Instrument img={repeat} alt="Повторить" onClick={onClick} />
+                <Instrument img={repeat} alt="Повторить" onClick={onClick} disabled={false} />
               </li>
             </ul>
           </div>
@@ -103,7 +107,7 @@ function Dashboard() {
         </div>
 
         <div className="dashboard__center">
-          <Instruments onClick={onClick} />
+          <Instruments onClick={onClick} onClickSize={onClickSize} />
 
           <Workspace
             fourImage={fourImage}

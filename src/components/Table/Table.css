@@ -73,3 +73,7 @@
   border-bottom: 1px solid #dfdfdf;
   color: #a0a0a0;
 }
+
+.table__link {
+  text-decoration: none;
+}

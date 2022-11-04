@@ -13,11 +13,6 @@ function Navigation({ isSuperUser }) {
               </NavLink>
             </li>
             <li className="navigation__item">
-              <NavLink to="/study" className="navigation__link">
-                Список исследований
-              </NavLink>
-            </li>
-            <li className="navigation__item">
               <NavLink to="/generation" className="navigation__link">
                 Генерация патологий
               </NavLink>

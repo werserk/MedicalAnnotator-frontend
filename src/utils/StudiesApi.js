@@ -35,8 +35,8 @@ class StudiesApi {
         ...this._headers,
         authorization: `Bearer ${localStorage.getItem("token")}`,
       };
-      return this._fetch("/user/related", "GET");
-      //return this._fetch("/users", "GET");
+      //return this._fetch("/user/related", "GET");
+      return this._fetch("/users", "GET");
     }
   
     // Получаем массив исследований
@@ -46,6 +46,12 @@ class StudiesApi {
           authorization: `Bearer ${localStorage.getItem("token")}`,
         };
         return this._fetch("/studies", "GET");
+    }
+
+    // Получаем массив исследований врача по id
+    getUserStudies(userId) {
+        //return this._fetch(`/studies/${userId}`, "GET");
+        return this._fetch(`/studies/${userId}/unique_id`, "GET");
     }
 
     // Создаем исследование
