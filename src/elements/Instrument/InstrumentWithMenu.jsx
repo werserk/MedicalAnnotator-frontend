@@ -1,6 +1,6 @@
 import Instrument from "./Instrument";
 
-function InstrumentWithMenu({ img, alt, onClick, disabled, setIsOpen, isOpen, children }) {
+function InstrumentWithMenu({ img, alt, onClick, disabled, setIsOpen, isOpen, children, isActive }) {
 
     function onCloseMenu(e) {
         if (!e.target.className.includes("instrument-context__menu")) {

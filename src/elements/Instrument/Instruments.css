@@ -162,3 +162,8 @@
   grid-template-columns: 1fr 1fr;
   grid-gap: 10px;
 }
+
+.instruments__checkbox {
+  position: absolute;
+  margin: 0;
+}

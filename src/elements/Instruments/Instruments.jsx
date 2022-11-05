@@ -26,10 +26,14 @@ function Instruments({ onClick }) {
     eraserSize: 1,
     deviationAmount: 0,
     topValue: 1,
-    bottomValue: 1
+    bottomValue: 1,
   });
+  const [isActiveFilling2D, setIsActiveFilling2D] = useState(false);
+  const [isActiveFillingValue, setIsActiveFillingValue] = useState(false);
+  const [isActiveFilling, setIsActiveFilling] = useState(false);
 
-  const { brushSize, eraserSize, deviationAmount, topValue, bottomValue } = menuData;
+  const { brushSize, eraserSize, deviationAmount, topValue, bottomValue } =
+    menuData;
 
   const onChange = (e) =>
     setMenuData({ ...menuData, [e.target.name]: e.target.value });
@@ -38,7 +42,7 @@ function Instruments({ onClick }) {
     <div className="instruments">
       <ul className="instruments__list">
         {/* Основные инструменты */}
-        <li className="instruments__item instruments__item_active">
+        <li className="instruments__item">
           <Instrument
             img={cursor}
             alt="Курсор"
@@ -157,28 +161,37 @@ function Instruments({ onClick }) {
         <li className="instruments__item instruments__item_type_line"></li>
 
         {/* Инструменты полу-автоматической разметки */}
-        <li className="instruments__item">
-          <InstrumentWithMenu
-            img={filling2D}
-            alt="Заливка 2D"
-            onClick={onClick}
-            disabled={false}
-            setIsOpen={setIsOpenDeviationMenu}
-            isOpen={isOpenDeviationMenu}
-          >
-            <label className="instrument-context__menu-label">
-              Макс. значение отклонений
-            </label>
-            <input
-              className="instrument-context__menu-input"
-              type="number"
-              min="0"
-              max="100"
-              name="deviationAmount"
-              value={deviationAmount}
-              onChange={(e) => onChange(e)}
-            />
-          </InstrumentWithMenu>
+        <li
+          className={`instruments__item ${
+            isActiveFilling2D && "instruments__item_active"
+          }`}
+          onClick={() => {
+            setIsActiveFilling2D(!isActiveFilling2D);
+          }}
+        >
+          <div className="instruments__label">
+            <InstrumentWithMenu
+              img={filling2D}
+              alt="Заливка 2D"
+              onClick={onClick}
+              disabled={false}
+              setIsOpen={setIsOpenDeviationMenu}
+              isOpen={isOpenDeviationMenu}
+            >
+              <label className="instrument-context__menu-label">
+                Макс. значение отклонений
+              </label>
+              <input
+                className="instrument-context__menu-input"
+                type="number"
+                min="0"
+                max="100"
+                name="deviationAmount"
+                value={deviationAmount}
+                onChange={(e) => onChange(e)}
+              />
+            </InstrumentWithMenu>
+          </div>
         </li>
         <li className="instruments__item">
           <Instrument
@@ -188,7 +201,14 @@ function Instruments({ onClick }) {
             disabled={true}
           />
         </li>
-        <li className="instruments__item">
+        <li 
+          className={`instruments__item ${
+            isActiveFillingValue && "instruments__item_active"
+          }`}
+          onClick={(e) => {
+            setIsActiveFillingValue(!isActiveFillingValue);
+          }}
+        >
           <InstrumentWithMenu
             img={fillingValue}
             alt="Заливка по значениям"
@@ -213,9 +233,7 @@ function Instruments({ onClick }) {
                 />
               </li>
               <li className="instrument-context__menu-item">
-                <label className="instrument-context__menu-label">
-                  Нижнее
-                </label>
+                <label className="instrument-context__menu-label">Нижнее</label>
                 <input
                   className="instrument-context__menu-input"
                   type="number"
@@ -229,7 +247,14 @@ function Instruments({ onClick }) {
             </ul>
           </InstrumentWithMenu>
         </li>
-        <li className="instruments__item">
+        <li 
+          className={`instruments__item ${
+            isActiveFilling && "instruments__item_active"
+          }`}
+          onClick={() => {
+            setIsActiveFilling(!isActiveFilling);
+          }}
+        >
           <Instrument
             img={filling}
             alt="Заливка контуров"
