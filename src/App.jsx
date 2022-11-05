@@ -19,7 +19,7 @@ import DeletePopup from "./components/DeletePopup/DeletePopup";
 import AddPopup from "./components/AddPopup/AddPopup";
 
 function App() {
-  const [isSuperUser, setIsSuperUser] = useState(true); //Суперюзер
+  const [isSuperUser, setIsSuperUser] = useState(false); //Суперюзер
 
   const [isOpenEditPopup, setIsOpenEditPopup] = useState(false); //Попап редактирования исследования
   const [isOpenDeletePopup, setIsOpenDeletePopup] = useState(false); //Попап удаления исследования
