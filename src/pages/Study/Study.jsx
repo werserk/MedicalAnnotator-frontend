@@ -3,8 +3,18 @@ import FilterList from "../../components/FilterList/FilterList";
 import "./Study.css";
 import { useState } from "react";
 import { useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 
-function Study({ openEditPopup, openDeletePopup, openAddPopup, studies, getStudies, choiceStudy }) {
+function Study({
+  openEditPopup,
+  openDeletePopup,
+  openAddPopup,
+  studies,
+  getStudies,
+  choiceStudy,
+  isSuperUser,
+  getUserStudies
+}) {
   const [filteredTable, setFilteredTable] = useState([]);
   const [filters, setFilters] = useState({
     name: "",
@@ -13,9 +23,14 @@ function Study({ openEditPopup, openDeletePopup, openAddPopup, studies, getStudi
     modality: "",
     state: "",
   });
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    getStudies();
+    if (!isSuperUser) {
+      getStudies();
+    } else {
+      getUserStudies(pathname.slice(7));
+    }
   }, []);
 
   useEffect(() => {
@@ -67,14 +82,25 @@ function Study({ openEditPopup, openDeletePopup, openAddPopup, studies, getStudi
 
   return (
     <div className="study">
+      {isSuperUser && (
+        <NavLink to="/users" className="study__back-link">
+          Вернуться к списку врачей
+        </NavLink>
+      )}
       <div className="study__header">
         <h1 className="study__title">Список исследований</h1>
+      {!isSuperUser &&
         <button type="button" className="study__btn" onClick={openAddPopup}>
           Добавить<span className="study__plus">+</span>
         </button>
+      }
       </div>
 
-      <div className="study__container">
+      <div
+        className={`study__container ${
+          isSuperUser && "study__container_name_superuser"
+        }`}
+      >
         <TableStudy
           openEditPopup={openEditPopup}
           openDeletePopup={openDeletePopup}

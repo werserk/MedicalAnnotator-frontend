@@ -1,9 +1,10 @@
 import { Navigate } from "react-router-dom";
 import { useState } from "react";
 import AuthForm from "../../components/AuthForm/AuthForm";
+import { connect } from 'react-redux'
+import { login } from "../../actions/auth";
 
-const SignIn = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const SignIn = ({login, isAuthenticated, isSuperUser}) => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -17,13 +18,19 @@ const SignIn = () => {
   const onSubmit = (e) => {
     e.preventDefault();
 
-    setIsAuthenticated(true);
+    login(username, password)
   };
 
   return (
     <div className="auth">
       {isAuthenticated ? (
-        <Navigate to="/dashboard" replace={true} />
+        <>
+        {isSuperUser ? 
+          <Navigate to="/users" replace={true} />
+        :
+          <Navigate to="/study" replace={true} />
+        }
+        </>
       ) : (
         <AuthForm
           title="Авторизация"
@@ -59,4 +66,9 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+const mapStateToProps = state => ({
+  isAuthenticated: state.auth.isAuthenticated,
+  isSuperUser: state.auth.isSuperUser
+})
+
+export default connect(mapStateToProps, {login})(SignIn)

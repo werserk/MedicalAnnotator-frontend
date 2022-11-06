@@ -4,6 +4,8 @@ function DeletePopup({ study, isOpenDeletePopup, closeAllPopups, deleteStudy }) 
 
     function handleSubmit(e) {
         e.preventDefault();
+
+        console.log(study.unique_id)
     
         deleteStudy(study.unique_id);
       }

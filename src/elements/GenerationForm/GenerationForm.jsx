@@ -25,8 +25,8 @@ function GenerationForm({ onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    onSubmit();
-    console.log(`${name} ${amount}  ${size}`);
+    onSubmit({...formData, ...formCheckboxes});
+    // console.log(`${name} ${amount}  ${size}`);
   };
 
   const onChangeCheckbox = (e) => {
@@ -71,7 +71,6 @@ function GenerationForm({ onSubmit }) {
                 Не выбрано
               </option>
               <option value="COVID-19">COVID-19</option>
-              <option value="cancer">Рак лёгких</option>
             </select>
           </li>
 
@@ -166,6 +165,7 @@ function GenerationForm({ onSubmit }) {
                 Не выбрано
               </option>
               <option value="single">Единичное</option>
+              <option value="few">Немногочисленные</option>
               <option value="numerous">Многочисленное</option>
             </select>
           </li>
@@ -181,9 +181,10 @@ function GenerationForm({ onSubmit }) {
               <option value="" disabled>
                 Не выбрано
               </option>
-              <option value="small">5 - 10 мм</option>
-              <option value="medium">10 - 20 мм</option>
-              <option value="large">{">"} 20 мм</option>
+              <option value="small">5 мм</option>
+              <option value="medium">5 - 10 мм</option>
+              <option value="large">10 - 20 мм</option>
+              <option value="super-large">{">"} 20 мм</option>
             </select>
           </li>
         </ul>

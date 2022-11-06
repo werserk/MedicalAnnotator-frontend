@@ -1,33 +1,43 @@
 import { Navigate } from "react-router-dom";
 import { useState } from "react";
 import AuthForm from "../../components/AuthForm/AuthForm";
+import { connect } from 'react-redux'
+import { signup } from "../../actions/auth";
 
-const SignUp = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const SignUp = ({signup, isAuthenticated, openErrorPopup, isSuperUser}) => {
   const [formData, setFormData] = useState({
+    fullName: "",
     name: "",
     username: "",
     password: "",
+    password2: "",
   });
 
-  const { name, username, password } = formData;
+  const { fullName, username, password, password2 } = formData;
 
   const onChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const onSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    //setIsAuthenticated(true);
-    console.log(
-      `Регистрируемся с такими данными: ${name} ${username}  ${password}`
-    );
+    if (password !== password2) {
+        openErrorPopup("Пароли не совпадают")
+    } else {
+        signup({fullName, username, password, password2})
+    }
   };
 
   return (
     <div className="auth">
       {isAuthenticated ? (
-        <Navigate to="/dashboard" replace={true} />
+         <>
+         {isSuperUser ? 
+           <Navigate to="/users" replace={true} />
+         :
+           <Navigate to="/study" replace={true} />
+         }
+         </>
       ) : (
         <AuthForm
           title="Регистрация"
@@ -43,8 +53,8 @@ const SignUp = () => {
               className="auth__input"
               onChange={(e) => onChange(e)}
               type="text"
-              name="name"
-              value={name}
+              name="fullName"
+              value={fullName}
             />
           </div>
           <div className="auth__item">
@@ -65,6 +75,18 @@ const SignUp = () => {
               type="password"
               name="password"
               value={password}
+              minLength="6"
+            />
+          </div>
+          <div className="auth__item">
+            <label className="auth__label">Повторите пароль</label>
+            <input
+              className="auth__input"
+              onChange={(e) => onChange(e)}
+              type="password"
+              name="password2"
+              value={password2}
+              minLength="6"
             />
           </div>
         </AuthForm>
@@ -73,4 +95,9 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+const mapStateToProps = state => ({
+  isAuthenticated: state.auth.isAuthenticated,
+  isSuperUser: state.auth.isSuperUser
+})
+
+export default connect(mapStateToProps, {signup})(SignUp)

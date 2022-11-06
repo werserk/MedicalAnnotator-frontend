@@ -45,35 +45,6 @@ function PullOutMenu({ onChange, data }) {
           </select>
         </li>
       </ul>
-
-      <ul className="pull-out-menu__list">
-        <li className="pull-out-menu__item">
-          <label className="pull-out-menu__label">Яркость</label>
-          <input
-            className="pull-out-menu__input pull-out-menu__input_type_range"
-            type="range"
-            name="bright"
-            min="-50"
-            max="50"
-            value={data.bright}
-            onChange={(e) => onChange(e)}
-          />
-          <span className="pull-out-menu__value">{data.bright}</span>
-        </li>
-        <li className="pull-out-menu__item">
-          <label className="pull-out-menu__label">Контрастность</label>
-          <input
-            className="pull-out-menu__input pull-out-menu__input_type_range"
-            type="range"
-            name="contrast"
-            min="-50"
-            max="50"
-            value={data.contrast}
-            onChange={(e) => onChange(e)}
-          />
-          <span className="pull-out-menu__value">{data.contrast}</span>
-        </li>
-      </ul>
     </div>
   );
 }

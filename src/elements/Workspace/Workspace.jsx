@@ -3,7 +3,7 @@ import Instrument from "../Instrument/Instrument";
 import squere4 from "../../assets/images/instruments/squere4.svg";
 import squere from "../../assets/images/instruments/squere.svg";
 
-function Workspace({ fourImage, onClick, onClickView }) {
+function Workspace({ fourImage, onClick, onClickView, mouseCallback }) {
   return (
     <div className="workspace">
       <div
@@ -17,7 +17,7 @@ function Workspace({ fourImage, onClick, onClickView }) {
             <div className="workspace__one-img"></div>
           </>
         ) : (
-          <div className="workspace__one-img"></div>
+          <canvas className="workspace__one-img" id="canvas" onMouseDownCapture={mouseCallback} onMouseUpCapture={mouseCallback} onMouseMove={mouseCallback}></canvas>
         )}
       </div>
 

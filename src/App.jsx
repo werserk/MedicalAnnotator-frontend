@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import SignIn from "./pages/SignIn/SignIn";
 import SignUp from "./pages/SignUp/SignUp";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -12,14 +12,16 @@ import Marker from "./components/Marker";
 import Header from "./components/Header/Header";
 import PopupInfo from "./elements/Popup/PopupInfo";
 import Preloader from "./components/Preloader/Preloader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import studiesApi from "./utils/StudiesApi";
 import EditPopup from "./components/EditPopup/EditPopup";
 import DeletePopup from "./components/DeletePopup/DeletePopup";
 import AddPopup from "./components/AddPopup/AddPopup";
+import JSZip from "jszip";
+import { refreshToken } from './actions/auth';
+import { connect } from 'react-redux'
 
-function App() {
-  const [isSuperUser, setIsSuperUser] = useState(true); //Суперюзер
+const App = ({token, refresh, isSuperUser, refreshToken}) => {
 
   const [isOpenEditPopup, setIsOpenEditPopup] = useState(false); //Попап редактирования исследования
   const [isOpenDeletePopup, setIsOpenDeletePopup] = useState(false); //Попап удаления исследования
@@ -34,6 +36,25 @@ function App() {
   const [studies, setStudies] = useState([]); // Все исследования
   const [study, setStudy] = useState({}); // Исследование
   const [users, setUsers] = useState([]); // Все врачи
+
+  const checkToken = () => {
+    if (refresh !== null && token !== null) {
+      try {
+        refreshToken(refresh)
+      } catch (e) {
+          window.location = "/signin"
+      }
+    } else if (window.location.pathname !== "/signin") {
+      window.location = "/signin"
+    }
+  }
+
+  useEffect(() => {
+    setInterval(() => {
+          checkToken()
+    }, 500000)
+    checkToken()
+  }, [])
 
   function getStudies() {
     setIsLoading(true);
@@ -101,7 +122,7 @@ function App() {
       })
       .catch((err) => {
         closeAllPopups();
-        openErrorPopup(err.statusText);
+        openErrorPopup(err.response.data["error"]);
       })
       .finally(setIsLoading(false));
   }
@@ -110,7 +131,7 @@ function App() {
     setIsLoading(true);
 
     studiesApi
-      .deleteStudy(50)
+      .deleteStudy(id)
       .then((res) => {
         setStudies(studies.filter((study) => study.unique_id !== id));
         closeAllPopups();
@@ -123,14 +144,13 @@ function App() {
   }
 
   function addStudy(newStudy) {
-    console.log(newStudy);
 
     setIsLoading(true);
 
     studiesApi
       .addNewStudy(newStudy)
       .then((res) => {
-        setStudies([newStudy, ...studies]);
+        setStudies([res, ...studies]);
         closeAllPopups();
       })
       .catch((err) => {
@@ -140,30 +160,73 @@ function App() {
       .finally(setIsLoading(false));
   }
 
-  function handleGenerate() {
-    setIsGenerated(true);
-    console.log("Сгенерировать");
+  function handleGenerate(studies) {
+    studiesApi.newGeneration(studies)
+    .then((response) => {
+      studiesApi.downloadFiles(response.data["url"])
+      .then(() => {
+        closeAllPopups();
+      })
+      .catch((err) => {
+        closeAllPopups();
+        openErrorPopup(err.statusText);
+      })
+      .finally(setIsLoading(false));
+    })
+    .catch((err) => {
+      closeAllPopups();
+      openErrorPopup(err.statusText);
+    })
+    .finally(() => {
+      setIsGenerated(true);
+      console.log("Сгенерировать");
+    });
   }
 
   function onContextMenu() {
     return false;
   }
 
-  function choiceUser(user) {
-    console.log(user);
+  function choiceUser(userId) {
+    setIsLoading(true);
+
+    studiesApi
+      .getUserStudies(userId)
+      .then((res) => {
+        setStudies(res);
+        closeAllPopups();
+      })
+      .catch((err) => {
+        console.log(err);
+        closeAllPopups();
+        openErrorPopup(err.statusText);
+      })
+      .finally(setIsLoading(false));
   }
 
   function choiceStudy(study) {
-    console.log(study);
+    window.location = `/dashboard/${study.unique_id}`
+    console.log(study)
   }
 
-  function generateStudies(studies) {
-    console.log(studies);
+  function generateZip(files) {
+    const zip = new JSZip()
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].name.split(".")[files[i].name.split(".").length - 1] === "dcm" ||
+          files[i].name.split(".")[files[i].name.split(".").length - 1] == files[i].name) 
+      {
+          zip.file(files[i].name, files[i]);
+      } else {
+          setInfoText("Неподдерживаемый формат файла")
+          setIsOpenErrorPopup(true)
+      }
+    }
+
+    return zip
   }
 
   return (
     <>
-      <wc-toast></wc-toast>
       <div className="App" onContextMenu={onContextMenu}>
         <div className="page">
           <Router>
@@ -172,8 +235,9 @@ function App() {
             <main className="content">
               <Routes>
                 <Route path="*" element={<PageNotFound />} />
+                <Route path="/" element={<Navigate to="/signin" />}/>
                 <Route path="/signin" exact element={<SignIn />} />
-                <Route path="/signup" exact element={<SignUp />} />
+                <Route path="/signup" exact element={<SignUp openErrorPopup={openErrorPopup}/>} />
                 <Route
                   path="/users"
                   exact
@@ -182,11 +246,12 @@ function App() {
                       users={users}
                       getUsers={getUsers}
                       choiceUser={choiceUser}
+                      isSuperUser={isSuperUser}
                     />
                   }
                 />
                 <Route
-                  path="/study"
+                  path="/users/:id"
                   exact
                   element={
                     <Study
@@ -196,9 +261,28 @@ function App() {
                       studies={studies}
                       getStudies={getStudies}
                       choiceStudy={choiceStudy}
+                      isSuperUser={isSuperUser}
+                      getUserStudies={choiceUser}
                     />
                   }
                 />
+                {!isSuperUser && 
+                <Route
+                path="/study"
+                exact
+                element={
+                  <Study
+                    openEditPopup={openEditPopup}
+                    openDeletePopup={openDeletePopup}
+                    openAddPopup={openAddPopup}
+                    studies={studies}
+                    getStudies={getStudies}
+                    choiceStudy={choiceStudy}
+                    isSuperUser={isSuperUser}
+                  />
+                }
+              />}
+                
                 <Route
                   path="/generation"
                   exact
@@ -206,12 +290,12 @@ function App() {
                     <Generation
                       isGenerated={isGenerated}
                       onSubmit={handleGenerate}
-                      generateStudies={generateStudies}
+                      generateZip={generateZip}
                     />
                   }
                 />
                 <Route
-                  path="/dashboard"
+                  path="/dashboard/:uid"
                   exact
                   element={
                     <Dashboard>
@@ -245,6 +329,7 @@ function App() {
         isOpenAddPopup={isOpenAddPopup}
         closeAllPopups={closeAllPopups}
         addStudy={addStudy}
+        generateZip={generateZip}
       />
 
       <PopupInfo
@@ -259,4 +344,10 @@ function App() {
   );
 }
 
-export default App;
+const mapStateToProps = state => ({
+  token: state.auth.token,
+  refresh: state.auth.refresh,
+  isSuperUser: state.auth.isSuperUser,
+})
+
+export default connect(mapStateToProps, {refreshToken})(App)

@@ -4,12 +4,6 @@
   max-height: 100%;
 }
 
-.study__container {
-  height: calc(100% - 46px);
-  min-height: calc(100% - 46px);
-  max-height: calc(100% - 46px);
-}
-
 .study__header {
   margin-bottom: 20px;
   display: flex;
@@ -59,4 +53,30 @@
   display: grid;
   grid-template-columns: 1fr 260px;
   grid-gap: 26px;
+  height: calc(100% - 46px);
+  min-height: calc(100% - 46px);
+  max-height: calc(100% - 46px);
+}
+
+.study__container_name_superuser {
+  height: calc(100% - 90px);
+  min-height: calc(100% - 90px);
+  max-height: calc(100% - 90px);
+}
+
+.study__back-link {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+  color: #858585;
+  text-decoration: none;
+  transition: color .2s ease-in-out;
+  background: url(../../assets/images/arrow-left.svg) no-repeat center left;
+  padding-left: 26px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.study__back-link:hover {
+  color: #000;
 }

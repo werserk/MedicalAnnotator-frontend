@@ -16,7 +16,7 @@ function TableUsers({ users, choiceUser }) {
 
       {users.map((user, i) => {
         return (
-          <UserElement key={i} user={user} choiceUser={choiceUser} />
+          <UserElement key={i} id={i + 1} user={user} choiceUser={choiceUser} />
         );
       })}
     </div>
