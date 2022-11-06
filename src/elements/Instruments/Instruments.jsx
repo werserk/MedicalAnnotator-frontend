@@ -15,7 +15,12 @@ import fillingValue from "../../assets/images/instruments/filling-value.svg";
 import filling from "../../assets/images/instruments/filling.svg";
 import { useState } from "react";
 
-function Instruments({ onClick }) {
+function Instruments({ 
+  onClick, cursorCallback, movingCallback,
+   brushCallback, antiBrushCallback, eraserCallback,
+   polygonCallback, floodFillCallback, fillNumbersCallback, 
+   pointCallback, contourCallback, rulerCallback,
+  roiCallback}) {
   const [isOpenSizeMenu, setIsOpenSizeMenu] = useState(false);
   const [isOpenEraserMenu, setIsOpenEraserMenu] = useState(false);
   const [isOpenViewsMenu, setIsOpenViewsMenu] = useState(false);
@@ -46,7 +51,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={cursor}
             alt="Курсор"
-            onClick={onClick}
+            onClick={cursorCallback}
             disabled={false}
           />
         </li>
@@ -54,7 +59,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={shift}
             alt="Перемещение"
-            onClick={onClick}
+            onClick={movingCallback}
             disabled={false}
           />
         </li>
@@ -65,7 +70,7 @@ function Instruments({ onClick }) {
           <InstrumentWithMenu
             img={brush}
             alt="Кисть"
-            onClick={onClick}
+            onClick={brushCallback}
             disabled={false}
             setIsOpen={setIsOpenSizeMenu}
             isOpen={isOpenSizeMenu}
@@ -92,7 +97,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={antiBrush}
             alt="Анти&#8209;кисть"
-            onClick={onClick}
+            onClick={antiBrushCallback}
             disabled={false}
           />
         </li>
@@ -100,7 +105,7 @@ function Instruments({ onClick }) {
           <InstrumentWithMenu
             img={eraser}
             alt="Ластик"
-            onClick={onClick}
+            onClick={eraserCallback}
             disabled={false}
             setIsOpen={setIsOpenEraserMenu}
             isOpen={isOpenEraserMenu}
@@ -127,7 +132,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={polygon}
             alt="Построение полигонов"
-            onClick={onClick}
+            onClick={polygonCallback}
             disabled={false}
           />
         </li>
@@ -135,7 +140,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={point}
             alt="Точки"
-            onClick={onClick}
+            onClick={pointCallback}
             disabled={false}
           />
         </li>
@@ -146,7 +151,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={ruler}
             alt="Линейка"
-            onClick={onClick}
+            onClick={rulerCallback}
             disabled={false}
           />
         </li>
@@ -154,7 +159,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={circle}
             alt="ROI"
-            onClick={onClick}
+            onClick={roiCallback}
             disabled={false}
           />
         </li>
@@ -173,7 +178,7 @@ function Instruments({ onClick }) {
             <InstrumentWithMenu
               img={filling2D}
               alt="Заливка 2D"
-              onClick={onClick}
+              onClick={floodFillCallback}
               disabled={false}
               setIsOpen={setIsOpenDeviationMenu}
               isOpen={isOpenDeviationMenu}
@@ -212,7 +217,7 @@ function Instruments({ onClick }) {
           <InstrumentWithMenu
             img={fillingValue}
             alt="Заливка по значениям"
-            onClick={onClick}
+            onClick={fillNumbersCallback}
             disabled={false}
             setIsOpen={setIsOpenViewsMenu}
             isOpen={isOpenViewsMenu}
@@ -258,7 +263,7 @@ function Instruments({ onClick }) {
           <Instrument
             img={filling}
             alt="Заливка контуров"
-            onClick={onClick}
+            onClick={contourCallback}
             disabled={false}
           />
         </li>

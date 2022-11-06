@@ -139,9 +139,8 @@ class AnnotatorWindow extends React.Component {
         this.shape = this.geometry.getSize().getValues() // width, height, deep'
         console.log('shape', this.shape)
 
-        this.buffer = this.image.getBuffer() 
+        this.buffer = this.image.getBuffer()
         this.Uint8Image = apply_windowing(new Float32Array(this.buffer), this.wc, this.ww)
-        console.log(this.Uint8Image)
 
         this.emptyMask = cv.Mat.zeros(this.shape[1], this.shape[0], cv.CV_8UC1)
         this.emptyMask3C = cv.Mat.zeros(this.shape[1], this.shape[0], cv.CV_8UC3)
@@ -803,7 +802,7 @@ class AnnotatorWindow extends React.Component {
             this.scaleFactor = Math.max(this.scaleFactor, 0.5)
         }
         console.log(this.scaleFactor)
-        this.canvas.style = `transform: translate(0px, 0px) scale(${this.scaleFactor})`
+        this.canvas.style = `transform: translate(0px, 0px) scale(${this.scaleFactor}); margin:auto;`
     }
 
     handleMouseEvents() {
@@ -945,12 +944,25 @@ class AnnotatorWindow extends React.Component {
                 <div className="dashboard__center">
                 <Instruments
                     onClick={this.onClick}
+                    cursorCallback={() => this.setTool("")}
+                    movingCallback={() => this.setTool("")}
+                    brushCallback={() => this.setTool("Paint")}
+                    antiBrushCallback={() => this.setTool("")}
+                    eraserCallback={() => this.setTool("Eraser")}
+                    polygonCallback={() => this.setTool("Polygons")}
+                    floodFillCallback={() => this.setTool("")}
+                    fillNumbersCallback={() => this.setTool("")}
+                    pointCallback={() => this.setTool("Points")}
+                    contourCallback={() => this.setTool("Курсор")}
+                    rulerCallback={() => this.setTool("Ruler")}
+                    roiCallback={() => this.setTool("")}
                 />
 
                 <Workspace
                     fourImage={this.isFourImages}
                     onClick={this.onClick}
                     onClickView={this.onClick}
+                    mouseCallback={this.mouseCallback}
                 />
 
                 <Classes />
