@@ -1,0 +1,169 @@
+.instruments {
+  border-right: 1px solid #cfcfcf;
+  background-color: #ececec;
+  width: 50px;
+  padding: 22px 0;
+  height: 100%;
+  box-sizing: border-box;
+  /* overflow-x: auto; */
+}
+
+.instruments__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.instruments__item {
+  margin-bottom: 10px;
+  padding: 5px;
+  box-sizing: border-box;
+  line-height: 0;
+  border-radius: 3px;
+}
+
+.instruments__item_active {
+  background-color: #cfcfcf;
+}
+
+.instruments__item_type_line {
+  width: 100%;
+  height: 1px;
+  background-color: #cfcfcf;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Instrument */
+
+.instrument {
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+.instrument:disabled {
+  cursor: default;
+}
+
+.instrument__img {
+  opacity: 1;
+  transition: opacity 0.1s ease-in-out;
+}
+
+.instrument__img:hover {
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+
+.instrument:disabled .instrument__img {
+  opacity: 0.5;
+}
+
+.instrument__info {
+  background-color: #fff;
+  border-radius: 3px;
+  padding: 2px 5px 3px;
+  color: #000;
+  font-size: 10px;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  transition-delay: 1s;
+  visibility: hidden;
+  border: 1px solid #cfcfcf;
+  top: calc(100% + 3px);
+  left: 13px;
+  z-index: 10;
+}
+
+.instrument:hover .instrument__info {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Context */
+
+.instrument-context {
+  position: relative;
+}
+
+.instrument-context__menu {
+  background-color: #ececec;
+  padding: 10px;
+  position: absolute;
+  border: 1px solid #cfcfcf;
+  top: -10px;
+  left: 28px;
+  z-index: 10;
+  display: none;
+  width: 210px;
+  box-sizing: border-box;
+}
+
+.instrument-context__menu_opened {
+  display: block;
+}
+
+.instrument-context__menu-label {
+  display: block;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #000000;
+  margin: 0 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 22px;
+}
+
+.instrument-context__menu-circle {
+  border-radius: 50%;
+  border: 1px solid #000;
+  display: block;
+}
+
+.instrument-context__menu-input {
+  background-color: #f9f9f9;
+  padding: 6px 10px 7px 15px;
+  border-radius: 5px;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #000000;
+  border: 1px solid #f9f9f9;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.instrument-context__menu-input:active, 
+.instrument-context__menu-input:focus, 
+.instrument-context__menu-input:focus-visible {
+  border-color: #5693e1;
+  outline: none;
+}
+
+.instrument-context__menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 10px;
+}
+
+.instruments__checkbox {
+  position: absolute;
+  margin: 0;
+}

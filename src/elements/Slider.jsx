@@ -1,13 +1,13 @@
-import * as React from 'react';
-import { Range } from 'react-range';
+import * as React from "react";
+import { Range } from "react-range";
 
 class Slider extends React.Component {
   state = { values: [this.props.value] };
 
   handleChange = (values) => {
-    this.setState({ values })
-    this.props.changeValue(values[0])
-  }
+    this.setState({ values });
+    this.props.changeValue(values[0]);
+  };
 
   render() {
     return (
@@ -22,9 +22,9 @@ class Slider extends React.Component {
             {...props}
             style={{
               ...props.style,
-              height: '6px',
-              width: '100%',
-              backgroundColor: '#ccc'
+              height: "6px",
+              width: "100%",
+              backgroundColor: "#ccc",
             }}
           >
             {children}
@@ -35,9 +35,9 @@ class Slider extends React.Component {
             {...props}
             style={{
               ...props.style,
-              height: '42px',
-              width: '42px',
-              backgroundColor: '#999'
+              height: "42px",
+              width: "42px",
+              backgroundColor: "#999",
             }}
           />
         )}
@@ -46,4 +46,4 @@ class Slider extends React.Component {
   }
 }
 
-export default Slider
+export default Slider;

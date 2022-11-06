@@ -175,4 +175,4 @@ function Marker() {
     )
 }
 
-export default Marker
+export default Marker;

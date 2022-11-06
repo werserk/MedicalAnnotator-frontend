@@ -1,0 +1,79 @@
+.generation {
+  height: 100%;
+  max-height: 100%;
+}
+
+.generation__title {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 23px;
+  color: #000000;
+  margin: 0 0 20px;
+}
+
+.generation__container {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-gap: 26px;
+  height: calc(100% - 43px);
+  max-height: calc(100% - 43px);
+}
+
+.generation__dropzone {
+  height: 100%;
+  max-height: 100%;
+}
+
+.generation__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 26px;
+  margin-top: 26px;
+}
+
+.generation__export {
+  border: 1px solid #5693e1;
+  color: #5693e1;
+  background-color: transparent;
+  padding: 10px 20px 11px;
+  font-family: "IBM Plex Mono", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.generation__export:hover {
+  background-color: #5693e1;
+  color: #fff;
+}
+
+.generation__save {
+  border: 1px solid #5693e1;
+  color: #fff;
+  background-color: #5693e1;
+  padding: 10px 20px 11px;
+  font-family: "IBM Plex Mono", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.generation__save:hover {
+  opacity: 0.8;
+}
+
+.generation__data {
+  border: 1px solid #dfdfdf;
+  padding: 22px;
+  height: 100%;
+  max-height: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+}

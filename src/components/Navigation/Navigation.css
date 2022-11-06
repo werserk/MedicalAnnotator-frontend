@@ -1,0 +1,40 @@
+.navigation {
+  width: 100%;
+}
+
+.navigation__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.navigation__item {
+  margin-right: 26px;
+}
+
+.navigation__link {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 21px;
+  color: #000000;
+  position: relative;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.navigation__link.active::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #5693e1;
+  position: absolute;
+  bottom: -5px;
+}
+
+.navigation__link:not(.active):hover {
+  color: #5693e1;
+}
