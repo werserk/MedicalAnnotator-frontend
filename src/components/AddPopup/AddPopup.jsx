@@ -2,14 +2,19 @@ import PopupWithForm from "../../elements/Popup/PopupWithForm";
 import Dropzone from "../../elements/Dropzone/Dropzone";
 import { useState } from "react";
 
-function AddPopup({ isOpenAddPopup, closeAllPopups, addStudy }) {
+function AddPopup({ isOpenAddPopup, closeAllPopups, addStudy, generateZip }) {
 
     const [newFile, setNewFile] = useState("");
 
     function handleSubmit(e) {
         e.preventDefault();
-    
-        addStudy(`Добавляем исследование ${String(newFile)}`);
+
+        const zip = generateZip(newFile)
+        zip.generateAsync({type: "blob"}).then(content => {
+          const formData = new FormData();
+          formData.append('file', content);
+          addStudy(formData);
+        });
       }
 
   return (

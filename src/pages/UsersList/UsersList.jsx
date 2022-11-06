@@ -2,7 +2,7 @@ import "./UsersList.css";
 import TableUsers from "../../components/Table/TableUsers";
 import { useEffect } from "react";
 
-function UsersList({ users, getUsers, choiceUser }) {
+function UsersList({ users, getUsers, choiceUser}) {
   
   useEffect(() => {
     getUsers();

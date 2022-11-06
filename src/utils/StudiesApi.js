@@ -1,3 +1,6 @@
+import axios from "axios";
+import { BASE_URL } from "../constans";
+
 class StudiesApi {
     constructor({ baseUrl, headers }) {
       this._url = baseUrl;
@@ -14,6 +17,10 @@ class StudiesApi {
   
     // Базовый запрос без тела
     _fetch(way, methodName) {
+      this._headers = {
+        ...this._headers,
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
       return fetch(`${this._url}${way}`, {
         method: methodName,
         headers: this._headers,
@@ -22,62 +29,81 @@ class StudiesApi {
   
     // Запрос с телом
     _fetchWithBody(way, methodName, bodyContent) {
+      this._headers = {
+        ...this._headers,
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
       return fetch(`${this._url}${way}`, {
         method: methodName,
-        headers: this._headers,
+        // headers: this._headers,
         body: JSON.stringify(bodyContent),
       }).then(this._checkResponse);
     }
   
     // Получаем массив врачей
     getAllUsers() {
-      this._headers = {
-        ...this._headers,
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-      };
       //return this._fetch("/user/related", "GET");
-      return this._fetch("/users", "GET");
+      return this._fetch("/users/", "GET");
     }
   
     // Получаем массив исследований
     getAllStudies() {
-        this._headers = {
-          ...this._headers,
-          authorization: `Bearer ${localStorage.getItem("token")}`,
-        };
         return this._fetch("/studies", "GET");
     }
 
     // Получаем массив исследований врача по id
     getUserStudies(userId) {
         //return this._fetch(`/studies/${userId}`, "GET");
-        return this._fetch(`/studies/${userId}/unique_id`, "GET");
+        return this._fetch(`/studies/${userId}`, "GET");
     }
 
     // Создаем исследование
     addNewStudy(newStudy) {
-        return this._fetchWithBody("/studies", "POST", newStudy);
+      const config = {
+        headers: {
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      }
+        return axios.put(this._url + "/upload/", newStudy, config)
     }
 
     // Редактируем исследование
     editStudy(studyId, newComment) {
-        return this._fetch(`/studies/${studyId}`, "PATCH", newComment);
+        const config = {
+          headers: {
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          }
+        }
+        return axios.patch(this._url + `/study/${studyId}`, newComment, config)
       }
   
     // Удаляем исследование
     deleteStudy(studyId) {
-      return this._fetch(`/studies/${studyId}`, "DELETE");
+      console.log(studyId)
+      return this._fetch(`/study/${studyId}`, "DELETE");
     }
+
+    // Создаем новую генерацию
+    newGeneration(generation) {
+      return axios.post(this._url + "/generation/generate/", generation)
+      // return this._fetchWithBody("/generation/generate/", "POST", formData)
+    }
+
+    downloadFile(url) {
+      return this._fetch(url, "GET")
+    }
+    
   }
   
-  // Создаем класс апи
-  const studiesApi = new StudiesApi({
-    baseUrl: "https://6364f07d7b209ece0f52bf14.mockapi.io/api",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  });
+
+// Создаем класс апи
+const studiesApi = new StudiesApi({
+  baseUrl: BASE_URL + "api",
+  headers: {
+    "content-type": "application/json",
+    authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
   
-  export default studiesApi;
+export default studiesApi;
   

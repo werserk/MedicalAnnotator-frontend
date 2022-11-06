@@ -1,6 +1,6 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-function UserElement({ user, choiceUser }) {
+function UserElement({ user, choiceUser, id }) {
     const percentage = `${user.studies_completed} / ${user.studies} (${Math.round(
         (user.studies_completed * 100) / user.studies
       )}%)`;
@@ -14,10 +14,10 @@ function UserElement({ user, choiceUser }) {
 
     return (
             <div className="table__list table__list_name_users" onClick={handleUser}>
-                <div className="table__item">{user.unique_id}</div>
-                <div className="table__item">{user.username}</div>
+                <div className="table__item">{id}</div>
+                <div className="table__item">{user.full_name}</div>
                 {/* <div className="table__item">{user.taskName}</div> */}
-                <div className="table__item">{percentage}</div>
+                <div className="table__item">{percentage !== "0 / 0 (NaN%)" ? percentage : "0 / 0"}</div>
                 {/* <div className="table__item">{user.date}</div> */}
             </div>
     );

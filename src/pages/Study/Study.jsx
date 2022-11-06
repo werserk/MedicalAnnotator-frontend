@@ -89,9 +89,11 @@ function Study({
       )}
       <div className="study__header">
         <h1 className="study__title">Список исследований</h1>
+      {!isSuperUser &&
         <button type="button" className="study__btn" onClick={openAddPopup}>
           Добавить<span className="study__plus">+</span>
         </button>
+      }
       </div>
 
       <div

@@ -20,7 +20,7 @@ function Dropzone({ setNewFile }) {
         <div className="dropzone__files">
           {acceptedFiles.map((file, i) => (
             <span key={i}>
-              {file.path} - {file.size} bytes
+              {file.name} - {file.size} bytes {" | "}
             </span>
           ))}
         </div>
