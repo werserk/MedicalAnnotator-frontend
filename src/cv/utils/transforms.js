@@ -1,5 +1,5 @@
 export function apply_windowing(img, window_center, window_width, intercept, slope, inverted=false, np) {
-    let img = (img * slope + intercept)  // for translation adjustments given in the dicom file.
+    img = (img * slope + intercept)  // for translation adjustments given in the dicom file.
     let img_min = window_center - window_width // 2  # minimum HU level
     let img_max = window_center + window_width // 2  # maximum HU level
     img[img < img_min] = img_min  // set img_min for all HU levels less than minimum HU level

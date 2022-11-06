@@ -1,11 +1,11 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { BASE_URL } from "../constans";
+import { BASE_URL } from "../../constans";
 import dwv from 'dwv'
 import cv from "@techstark/opencv-js"
 import nj from "@d4c/numjs/build/module/numjs.min.js"
-import { apply_windowing } from "../cv/utils/transforms";
-import Draggable from "react-draggable";
+import { apply_windowing } from "../../cv/utils/transforms";
+// import Draggable from "react-draggable";
 import axios from "axios";
 
 import "./Dashboard.css";
@@ -36,6 +36,7 @@ class AnnotatorWindow extends React.Component {
         this.fetchUrl = BASE_URL + `api/study/${this.props.params.study}`
 
         // Setup parameters
+        this.isFourImages = false
         this.wc = 40
         this.ww = 400
         this.brushSize = 5
@@ -62,7 +63,8 @@ class AnnotatorWindow extends React.Component {
 
         this.authRequestHeader = { // заголовки авторизации
             name: "Authorization",
-            value: this.props.authToken["Authorization"]
+            value: `Bearer ${localStorage.getItem("token")}`
+
         }
         this.app = new dwv.App();
         this.createMat = this.createMat.bind(this);
@@ -88,9 +90,9 @@ class AnnotatorWindow extends React.Component {
         });
         const config = {
             headers: {
-                "Authorization": this.authRequestHeader.value
+              authorization: `Bearer ${localStorage.getItem("token")}`,
             }
-        }
+         }
         axios.get(this.fetchUrl, config).then((response) => {
             const paths = response.data["paths"][0]
             const urls = []
@@ -126,6 +128,7 @@ class AnnotatorWindow extends React.Component {
 
         this.geometry = this.image.getGeometry()
         this.shape = this.geometry.getSize().getValues() // width, height, deep'
+        console.log('shape', this.shape)
 
         this.buffer = this.image.getBuffer() 
         this.Uint8Image = apply_windowing(new Float32Array(this.buffer), this.wc, this.ww)
@@ -839,7 +842,19 @@ class AnnotatorWindow extends React.Component {
         return this.middleButtonDown
     }
 
+    onClick() {
+
+    }
+
+    handleSubmit() {
+
+    }
+
     render () {
+    this.instrumentsData = {
+        center: this.wc,
+        width: this.ww,
+    }
     return (
             <>
             <div className="dashboard">
@@ -870,7 +885,7 @@ class AnnotatorWindow extends React.Component {
                         <Instrument
                         img={exportIcon}
                         alt="Экспорт"
-                        onClick={onClick}
+                        onClick={this.exportJsonData}
                         disabled={false}
                         />
                     </li>
@@ -878,7 +893,7 @@ class AnnotatorWindow extends React.Component {
                         <Instrument
                         img={importIcon}
                         alt="Импорт"
-                        onClick={onClick}
+                        onClick={this.importJsonData}
                         disabled={false}
                         />
                     </li>
@@ -886,7 +901,7 @@ class AnnotatorWindow extends React.Component {
                         <Instrument
                         img={cancel}
                         alt="Отменить"
-                        onClick={onClick}
+                        onClick={this.onClick}
                         disabled={false}
                         />
                     </li>
@@ -894,14 +909,14 @@ class AnnotatorWindow extends React.Component {
                         <Instrument
                         img={repeat}
                         alt="Повторить"
-                        onClick={onClick}
+                        onClick={this.onClick}
                         disabled={false}
                         />
                     </li>
                     </ul>
                 </div>
 
-                <form className="dashboard__condition" onSubmit={handleSubmit}>
+                <form className="dashboard__condition" onSubmit={this.handleSubmit}>
                     <select
                     className="dashboard__select"
                     name="condition"
@@ -920,19 +935,19 @@ class AnnotatorWindow extends React.Component {
 
                 <div className="dashboard__center">
                 <Instruments
-                    onClick={onClick}
+                    onClick={this.onClick}
                 />
 
                 <Workspace
-                    fourImage={fourImage}
-                    onClick={onClick}
-                    onClickView={onClickView}
+                    fourImage={this.isFourImages}
+                    onClick={this.onClick}
+                    onClickView={this.onClick}
                 />
 
                 <Classes />
                 </div>
 
-                <PullOutMenu onChange={onChangeInstruments} data={instrumentsData} />
+                <PullOutMenu onChange={this.onClick} data={this.instrumentsData} />
             </div>
             </>
         );

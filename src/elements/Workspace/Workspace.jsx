@@ -17,7 +17,7 @@ function Workspace({ fourImage, onClick, onClickView }) {
             <div className="workspace__one-img"></div>
           </>
         ) : (
-          <div className="workspace__one-img"></div>
+          <canvas className="workspace__one-img" id="canvas"></canvas>
         )}
       </div>
 
