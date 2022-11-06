@@ -205,7 +205,7 @@ const App = ({token, refresh, isSuperUser, refreshToken}) => {
   }
 
   function choiceStudy(study) {
-    window.location = "/dashboard"
+    window.location = `/dashboard/${study.unique_id}`
     console.log(study)
   }
 
@@ -295,7 +295,7 @@ const App = ({token, refresh, isSuperUser, refreshToken}) => {
                   }
                 />
                 <Route
-                  path="/dashboard"
+                  path="/dashboard/:uid"
                   exact
                   element={
                     <Dashboard>

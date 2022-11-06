@@ -33,7 +33,7 @@ class AnnotatorWindow extends React.Component {
 
     constructor (props) {
         super(props)
-        this.fetchUrl = BASE_URL + `api/study/${this.props.params.study}`
+        this.fetchUrl = BASE_URL + `api/study/${this.props.params.uid}`
 
         // Setup parameters
         this.isFourImages = false
@@ -90,16 +90,25 @@ class AnnotatorWindow extends React.Component {
         });
         const config = {
             headers: {
-              authorization: `Bearer ${localStorage.getItem("token")}`,
+                "Authorization": this.authRequestHeader.value
+            },
+            params: {
+                axial_id: 6,
+                coronal_id: 2,
+                saggital_id: 6,
             }
-         }
+        }
         axios.get(this.fetchUrl, config).then((response) => {
-            const paths = response.data["paths"][0]
-            const urls = []
-            for (let url of paths) {
-                urls.push(BASE_URL + "media/" + "?" + "path=" + url)
+            let paths
+            if (response.data["many"]) {
+                console.log(response.data)
+                console.log(response.data["axial_slices_paths"])
+                paths = response.data["axial_slices_paths"][0]
             }
-            this.app.loadURLs(urls, {"requestHeaders": [this.authRequestHeader]})
+            else {
+                paths = response.data["path"]
+            }
+            this.app.loadURLs([BASE_URL + paths], {"requestHeaders": [this.authRequestHeader]})
             this.app.addEventListener('loadend', () => {
                 const CV_NJLoadingHandle = setInterval(() => {
                     if (cv && nj) {

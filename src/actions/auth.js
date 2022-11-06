@@ -53,8 +53,6 @@ export const signup = ({username, fullName, password, password2}) => async dispa
         dispatch({
             type: SIGNUP_FAILED
         })
-
-        dispatch(setAlert("Failed to create account", "error"))
     }
 }
 
